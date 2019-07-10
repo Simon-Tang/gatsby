@@ -18,12 +18,13 @@ module.exports = async program => {
         return
       }
 
-      if (stats.hasErrors()) {
-        reject(stats.compilation.errors)
+      const jsonStats = stats.toJson()
+      if (jsonStats.errors && jsonStats.errors.length > 0) {
+        reject(jsonStats.errors)
         return
       }
 
-      resolve(stats)
+      resolve()
     })
   })
 }

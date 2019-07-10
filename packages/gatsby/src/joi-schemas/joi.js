@@ -1,59 +1,17 @@
-const Joi = require(`@hapi/joi`)
+const Joi = require(`joi`)
 
-const stripTrailingSlash = chain => chain.replace(/(\w)\/+$/, `$1`)
-
-export const gatsbyConfigSchema = Joi.object()
-  .keys({
-    __experimentalThemes: Joi.array(),
-    polyfill: Joi.boolean(),
-    assetPrefix: stripTrailingSlash(
-      Joi.string().uri({
-        allowRelative: true,
-      })
-    ),
-    pathPrefix: stripTrailingSlash(
-      Joi.string().uri({
-        allowRelative: true,
-        relativeOnly: true,
-      })
-    ),
-    siteMetadata: Joi.object({
-      siteUrl: stripTrailingSlash(Joi.string()).uri(),
-    }).unknown(),
-    mapping: Joi.object(),
-    plugins: Joi.array(),
-    proxy: Joi.object().keys({
-      prefix: Joi.string().required(),
-      url: Joi.string().required(),
-    }),
-    developMiddleware: Joi.func(),
-  })
-  // throws when both assetPrefix and pathPrefix are defined
-  .when(
-    Joi.object({
-      assetPrefix: Joi.string().uri({
-        allowRelative: true,
-        relativeOnly: true,
-      }),
-      pathPrefix: Joi.string().uri({
-        allowRelative: true,
-        relativeOnly: true,
-      }),
-    }),
-    {
-      then: Joi.object({
-        assetPrefix: Joi.string()
-          .uri({
-            allowRelative: false,
-          })
-          .error(
-            new Error(
-              `assetPrefix must be an absolute URI when used with pathPrefix`
-            )
-          ),
-      }),
-    }
-  )
+export const gatsbyConfigSchema = Joi.object().keys({
+  polyfill: Joi.boolean(),
+  siteMetadata: Joi.object(),
+  pathPrefix: Joi.string(),
+  mapping: Joi.object(),
+  plugins: Joi.array(),
+  proxy: Joi.object().keys({
+    prefix: Joi.string().required(),
+    url: Joi.string().required(),
+  }),
+  developMiddleware: Joi.func(),
+})
 
 export const pageSchema = Joi.object()
   .keys({
@@ -63,7 +21,7 @@ export const pageSchema = Joi.object()
     componentChunkName: Joi.string().required(),
     context: Joi.object(),
     pluginCreator___NODE: Joi.string(),
-    pluginCreatorId: Joi.string(),
+    pluginCreatorName: Joi.string(),
   })
   .unknown()
 
@@ -79,7 +37,7 @@ export const nodeSchema = Joi.object()
         mediaType: Joi.string(),
         type: Joi.string().required(),
         owner: Joi.string().required(),
-        fieldOwners: Joi.object(),
+        fieldOwners: Joi.array(),
         content: Joi.string().allow(``),
         description: Joi.string(),
         ignoreType: Joi.boolean(),

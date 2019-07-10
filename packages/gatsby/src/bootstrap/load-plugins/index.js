@@ -37,9 +37,9 @@ const flattenPlugins = plugins => {
   return flattened
 }
 
-module.exports = async (config = {}, rootDir = null) => {
+module.exports = async (config = {}) => {
   // Collate internal plugins, site config plugins, site default plugins
-  const plugins = loadPlugins(config, rootDir)
+  const plugins = loadPlugins(config)
 
   // Create a flattened array of the plugins
   let flattenedPlugins = flattenPlugins(plugins)
@@ -48,13 +48,16 @@ module.exports = async (config = {}, rootDir = null) => {
   // valid Gatsby APIs, aka 'badExports'
   const x = collatePluginAPIs({ apis, flattenedPlugins })
   flattenedPlugins = x.flattenedPlugins
+  const apiToPlugins = x.apiToPlugins
   const badExports = x.badExports
 
   // Show errors for any non-Gatsby APIs exported from plugins
-  handleBadExports({ apis, badExports })
+  const isBad = handleBadExports({ apis, badExports })
+  if (isBad && process.env.NODE_ENV === `production`) process.exit(1) // TODO: change to panicOnBuild
 
   // Show errors when ReplaceRenderer has been implemented multiple times
   flattenedPlugins = handleMultipleReplaceRenderers({
+    apiToPlugins,
     flattenedPlugins,
   })
 
@@ -62,6 +65,17 @@ module.exports = async (config = {}, rootDir = null) => {
   store.dispatch({
     type: `SET_SITE_FLATTENED_PLUGINS`,
     payload: flattenedPlugins,
+  })
+
+  store.dispatch({
+    type: `SET_SITE_API_TO_PLUGINS`,
+    payload: apiToPlugins,
+  })
+
+  // TODO: Is this used? plugins and flattenedPlugins may be out of sync
+  store.dispatch({
+    type: `SET_SITE_PLUGINS`,
+    payload: plugins,
   })
 
   return flattenedPlugins

@@ -1,6 +1,7 @@
 import React from "react"
 import { Link } from "gatsby"
-import { colors, space, mediaQueries, fontSizes } from "../../utils/presets"
+import presets, { colors } from "../../utils/presets"
+import { rhythm, scale, options } from "../../utils/typography"
 import sharedStyles from "../shared/styles"
 import MdArrowBack from "react-icons/lib/md/arrow-back"
 
@@ -8,34 +9,43 @@ const Header = ({ stub }) => (
   <div
     className="starter-detail-header"
     css={{
-      padding: space[6],
-      paddingBottom: space[6],
-      [mediaQueries.sm]: {
+      fontFamily: options.headerFontFamily.join(`,`),
+      padding: sharedStyles.gutter,
+      paddingBottom: rhythm(options.blockMarginBottom),
+      [presets.Phablet]: {
         paddingBottom: 0,
       },
-      [mediaQueries.lg]: {
-        padding: space[8],
+      [presets.Desktop]: {
+        padding: sharedStyles.gutterDesktop,
         paddingBottom: 0,
       },
     }}
   >
-    <div css={{ paddingBottom: space[1] }}>
+    <div
+      css={{
+        paddingBottom: rhythm(1 / 4),
+      }}
+    >
       <Link
         to={`/starters`}
+        {...sharedStyles.withTitleHover}
         css={{
           "&&": {
-            fontSize: fontSizes[1],
+            ...scale(1 / 5),
+            boxShadow: `none`,
             borderBottom: 0,
             color: colors.gatsby,
+            cursor: `pointer`,
+            fontFamily: options.headerFontFamily.join(`,`),
             fontWeight: `normal`,
             "&:hover": {
+              background: `transparent`,
               color: colors.lilac,
             },
           },
-          ...sharedStyles.withTitleHover,
         }}
       >
-        <MdArrowBack style={{ marginRight: space[1] }} />
+        <MdArrowBack style={{ marginRight: 4, verticalAlign: `sub` }} />
         &nbsp;
         <span className="title">All Starters</span>
       </Link>

@@ -1,5 +1,4 @@
 const { resolve } = require(`path`)
-const md5File = require(`bluebird`).promisify(require(`md5-file`))
 
 const {
   DuotoneGradientType,
@@ -44,16 +43,14 @@ module.exports = async args => {
 
 async function sqipSharp({ type, cache, getNodeAndSavePathDependency, store }) {
   const program = store.getState().program
-  const cacheDir = resolve(
-    `${program.directory}/node_modules/.cache/gatsby-transformer-sqip/`
-  )
+  const cacheDir = resolve(`${program.directory}/.cache/sqip/`)
 
   await ensureDir(cacheDir)
 
   return {
     sqip: {
       type: new GraphQLObjectType({
-        name: `SqipSharp`,
+        name: `Sqip`,
         fields: {
           svg: { type: GraphQLString },
           dataURI: { type: GraphQLString },
@@ -110,7 +107,6 @@ async function sqipSharp({ type, cache, getNodeAndSavePathDependency, store }) {
         }
 
         const file = getNodeAndSavePathDependency(image.parent, context.path)
-        const { contentDigest } = image.internal
 
         const job = await queueImageResizing({ file, args: sharpArgs })
 
@@ -124,7 +120,6 @@ async function sqipSharp({ type, cache, getNodeAndSavePathDependency, store }) {
         return generateSqip({
           cache,
           cacheDir,
-          contentDigest,
           absolutePath,
           numberOfPrimitives,
           blur,
@@ -143,16 +138,14 @@ async function sqipContentful({ type, cache, store }) {
   const cacheImage = require(`gatsby-source-contentful/cache-image`)
 
   const program = store.getState().program
-  const cacheDir = resolve(
-    `${program.directory}/node_modules/.cache/gatsby-transformer-sqip/`
-  )
+  const cacheDir = resolve(`${program.directory}/.cache/sqip/`)
 
   await ensureDir(cacheDir)
 
   return {
     sqip: {
       type: new GraphQLObjectType({
-        name: `SqipContentful`,
+        name: `Sqip`,
         fields: {
           svg: { type: GraphQLString },
           dataURI: { type: GraphQLString },
@@ -226,12 +219,9 @@ async function sqipContentful({ type, cache, store }) {
 
         const absolutePath = await cacheImage(store, asset, options)
 
-        const contentDigest = await md5File(absolutePath)
-
         return generateSqip({
           cache,
           cacheDir,
-          contentDigest,
           absolutePath,
           numberOfPrimitives,
           blur,

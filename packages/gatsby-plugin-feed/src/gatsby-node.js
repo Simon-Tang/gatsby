@@ -1,21 +1,12 @@
-import fs from "fs-extra"
+import fs from "fs"
 import path from "path"
 import RSS from "rss"
 import merge from "lodash.merge"
-
-import { defaultOptions, runQuery } from "./internals"
-import pluginOptionsSchema from "./plugin-options"
+import mkdirp from "mkdirp"
+import { defaultOptions, runQuery, writeFile } from "./internals"
 
 const publicPath = `./public`
 
-const warnMessage = (error, behavior) => `
-  gatsby-plugin-feed was initialized in gatsby-config.js without a ${error}.
-  This means that the plugin will use ${behavior}, which may not match your use case.
-  This behavior will be removed in the next major release of gatsby-plugin-feed.
-  For more info, check out: https://gatsby.app/adding-rss-feed
-`
-
-// TODO: remove in the next major release
 // A default function to transform query data into feed entries.
 const serialize = ({ query: { site, allMarkdownRemark } }) =>
   allMarkdownRemark.edges.map(edge => {
@@ -28,44 +19,9 @@ const serialize = ({ query: { site, allMarkdownRemark } }) =>
     }
   })
 
-exports.onPreBootstrap = async function onPreBootstrap(
-  { reporter },
-  pluginOptions
-) {
+exports.onPostBuild = async ({ graphql }, pluginOptions) => {
   delete pluginOptions.plugins
 
-  try {
-    const normalized = await pluginOptionsSchema.validate(pluginOptions)
-
-    // TODO: remove these checks in the next major release
-    if (!normalized.feeds) {
-      reporter.warn(
-        reporter.stripIndent(
-          warnMessage(`feeds option`, `the internal RSS feed creation`)
-        )
-      )
-    } else if (
-      normalized.feeds.some(feed => typeof feed.serialize !== `function`)
-    ) {
-      reporter.warn(
-        reporter.stripIndent(
-          warnMessage(
-            `serialize function in a feed`,
-            `the internal serialize function`
-          )
-        )
-      )
-    }
-  } catch (e) {
-    throw new Error(
-      e.details
-        .map(detail => `[Config Validation]: ${detail.message}`)
-        .join(`\n`)
-    )
-  }
-}
-
-exports.onPostBuild = async ({ graphql }, pluginOptions) => {
   /*
    * Run the site settings query to gather context, then
    * then run the corresponding feed for each query.
@@ -75,35 +31,39 @@ exports.onPostBuild = async ({ graphql }, pluginOptions) => {
     ...pluginOptions,
   }
 
-  const baseQuery = await runQuery(graphql, options.query)
+  if (`query` in options) {
+    options.query = await runQuery(graphql, options.query)
+  }
 
-  for (let feed of options.feeds) {
-    if (feed.query) {
-      feed.query = await runQuery(graphql, feed.query).then(result =>
-        merge({}, baseQuery, result)
-      )
+  for (let f of options.feeds) {
+    if (f.query) {
+      f.query = await runQuery(graphql, f.query)
+
+      if (options.query) {
+        f.query = merge(options.query, f.query)
+        delete options.query
+      }
     }
 
     const { setup, ...locals } = {
       ...options,
-      ...feed,
+      ...f,
     }
 
+    const feed = new RSS(setup(locals))
     const serializer =
-      feed.serialize && typeof feed.serialize === `function`
-        ? feed.serialize
-        : serialize
+      f.serialize && typeof f.serialize === `function` ? f.serialize : serialize
+    const items = serializer(locals)
 
-    const rssFeed = serializer(locals).reduce((merged, item) => {
-      merged.item(item)
-      return merged
-    }, new RSS(setup(locals)))
+    items.forEach(i => feed.item(i))
 
-    const outputPath = path.join(publicPath, feed.output)
+    const outputPath = path.join(publicPath, f.output)
     const outputDir = path.dirname(outputPath)
-    if (!(await fs.exists(outputDir))) {
-      await fs.mkdirp(outputDir)
+    if (!fs.existsSync(outputDir)) {
+      mkdirp.sync(outputDir)
     }
-    await fs.writeFile(outputPath, rssFeed.xml())
+    await writeFile(outputPath, feed.xml())
   }
+
+  return Promise.resolve()
 }

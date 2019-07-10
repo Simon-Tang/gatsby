@@ -2,8 +2,10 @@ import React, { Component } from "react"
 import FaAngleDown from "react-icons/lib/fa/angle-down"
 import FaAngleUp from "react-icons/lib/fa/angle-up"
 
-import { rhythm } from "../../utils/typography"
-import { colors, space, fontSizes, letterSpacings } from "../../utils/presets"
+import { options, scale, rhythm } from "../../utils/typography"
+import { colors } from "../../utils/presets"
+
+import styles from "./styles"
 
 class Collapsible extends Component {
   state = {
@@ -15,19 +17,17 @@ class Collapsible extends Component {
   }
 
   render() {
-    const { heading, fixed, children } = this.props
+    const { heading, children } = this.props
     const { collapsed } = this.state
 
     return (
       <div
         css={{
-          borderBottom: collapsed ? 0 : `1px solid ${colors.ui.border.subtle}`,
+          borderBottom: collapsed ? 0 : `1px solid ${colors.ui.light}`,
           display: collapsed ? false : `flex`,
           flex: collapsed ? `0 0 auto` : `1 1 auto`,
-          minHeight: fixed ? `${fixed}px` : `initial`,
-          maxHeight: fixed ? `${fixed}px` : `initial`,
-          flexBasis: 0,
-          overflowY: collapsed ? false : `auto`,
+          minHeight: collapsed ? `initial` : `130px`,
+          // paddingBottom: collapsed ? 0 : rhythm(options.blockMarginBottom),
         }}
       >
         <div
@@ -46,10 +46,10 @@ class Collapsible extends Component {
               display: `flex`,
               flexShrink: 0,
               fontWeight: `normal`,
-              fontSize: fontSizes[1],
-              marginTop: space[6],
+              fontSize: scale(-2 / 5).fontSize,
+              marginTop: rhythm(options.blockMarginBottom),
               marginRight: rhythm(5 / 4),
-              letterSpacing: letterSpacings.tracked,
+              letterSpacing: `.1em`,
               textTransform: `uppercase`,
               "&:hover": {
                 color: colors.gatsby,
@@ -65,6 +65,7 @@ class Collapsible extends Component {
           </h4>
           <div
             css={{
+              ...styles.scrollbar,
               display: collapsed ? `none` : `block`,
               overflowY: `auto`,
             }}

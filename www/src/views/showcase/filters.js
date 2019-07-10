@@ -8,18 +8,26 @@ const Filters = ({
   filters,
   categoryKeys,
   aggregatedCategories,
-  setFilters,
+  updateQuery,
 }) => (
   <SidebarContainer>
     <SidebarHeader />
     <SidebarBody>
-      {filters.length > 0 && <ResetFilters onClick={() => setFilters([])} />}
+      {filters.length > 0 && (
+        <ResetFilters
+          onClick={() => {
+            updateQuery(() => {
+              return { filters: [] }
+            })
+          }}
+        />
+      )}
       <CollapsibleFilterList
         aggregatedCategories={aggregatedCategories}
         categoryKeys={categoryKeys}
         filters={filters}
         heading="Category"
-        setFilters={setFilters}
+        updateQuery={updateQuery}
       />
     </SidebarBody>
   </SidebarContainer>

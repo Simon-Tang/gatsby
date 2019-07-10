@@ -1,3 +1,5 @@
+const _ = require(`lodash`)
+
 const { emitter, store } = require(`../redux`)
 const apiRunnerNode = require(`../utils/api-runner-node`)
 const { boundActionCreators } = require(`../redux/actions`)
@@ -14,11 +16,6 @@ emitter.on(`CREATE_NODE`, action => {
 emitter.on(`DELETE_NODE`, action => {
   if (action.payload.internal.type !== `SitePage`) {
     pagesDirty = true
-    // Make a fake API call to trigger `API_RUNNING_QUEUE_EMPTY` being called.
-    // We don't want to call runCreatePages here as there might be work in
-    // progress. So this is a safe way to make sure runCreatePages gets called
-    // at a safe time.
-    apiRunnerNode(`FAKE_API_CALL`)
   }
 })
 
@@ -30,8 +27,25 @@ emitter.on(`API_RUNNING_QUEUE_EMPTY`, () => {
 
 const runCreatePages = async () => {
   pagesDirty = false
+  const plugins = store.getState().plugins
+  // Test which plugins implement createPagesStatefully so we can
+  // ignore their pages.
+  const statefulPlugins = plugins
+    .filter(p => {
+      try {
+        const gatsbyNode = require(`${p.resolve}/gatsby-node`)
+        if (gatsbyNode.createPagesStatefully) {
+          return true
+        } else {
+          return false
+        }
+      } catch (e) {
+        return false
+      }
+    })
+    .map(p => p.id)
 
-  const timestamp = Date.now()
+  const timestamp = new Date().toJSON()
 
   await apiRunnerNode(`createPages`, {
     graphql,
@@ -42,9 +56,8 @@ const runCreatePages = async () => {
   // Delete pages that weren't updated when running createPages.
   Array.from(store.getState().pages.values()).forEach(page => {
     if (
-      !page.isCreatedByStatefulCreatePages &&
-      page.updatedAt < timestamp &&
-      page.path !== `/404.html`
+      !_.includes(statefulPlugins, page.pluginCreatorId) &&
+      page.updatedAt < timestamp
     ) {
       deleteComponentsDependencies([page.path])
       deletePage(page)

@@ -1,8 +1,21 @@
+const crypto = require(`crypto`)
 const deepMapKeys = require(`deep-map-keys`)
+const stringify = require(`json-stringify-safe`)
 
 const conflictFieldPrefix = `lever_`
 // restrictedNodeFields from here https://www.gatsbyjs.org/docs/node-interface/
 const restrictedNodeFields = [`id`, `children`, `parent`, `fields`, `internal`]
+
+/**
+ * Encrypts a String using md5 hash of hexadecimal digest.
+ *
+ * @param {any} str
+ */
+const digest = str =>
+  crypto
+    .createHash(`md5`)
+    .update(str)
+    .digest(`hex`)
 
 /**
  * Create the Graph QL Node
@@ -11,14 +24,7 @@ const restrictedNodeFields = [`id`, `children`, `parent`, `fields`, `internal`]
  * @param {any} type
  * @param {any} createNode
  */
-async function createGraphQLNode(
-  ent,
-  type,
-  createNode,
-  store,
-  cache,
-  createContentDigest
-) {
+async function createGraphQLNode(ent, type, createNode, store, cache) {
   let id = !ent.id ? (!ent.ID ? 0 : ent.ID) : ent.id
   let node = {
     id: `${type}_${id.toString()}`,
@@ -28,9 +34,9 @@ async function createGraphQLNode(
       type: type,
     },
   }
-  node = recursiveAddFields(ent, node)
+  node = recursiveAddFields(ent, node, createNode)
   node.internal.content = JSON.stringify(node)
-  node.internal.contentDigest = createContentDigest(node)
+  node.internal.contentDigest = digest(stringify(node))
   createNode(node)
 }
 exports.createGraphQLNode = createGraphQLNode
@@ -107,8 +113,9 @@ exports.normalizeEntities = entities =>
 // Standardize ids + make sure keys are valid.
 exports.standardizeKeys = entities =>
   entities.map(e =>
-    deepMapKeys(e, key =>
-      key === `ID` ? getValidKey({ key: `id` }) : getValidKey({ key })
+    deepMapKeys(
+      e,
+      key => (key === `ID` ? getValidKey({ key: `id` }) : getValidKey({ key }))
     )
   )
 
@@ -127,11 +134,7 @@ exports.createGatsbyIds = (createNodeId, entities) =>
     return e
   })
 
-exports.createNodesFromEntities = ({
-  entities,
-  createNode,
-  createContentDigest,
-}) => {
+exports.createNodesFromEntities = ({ entities, createNode }) => {
   entities.forEach(e => {
     let { ...entity } = e
     let node = {
@@ -140,7 +143,7 @@ exports.createNodesFromEntities = ({
       children: [],
       internal: {
         type: `lever`,
-        contentDigest: createContentDigest(entity),
+        contentDigest: digest(JSON.stringify(entity)),
       },
     }
     createNode(node)

@@ -1,34 +1,25 @@
 import React from "react"
-import { navigate, PageRenderer } from "gatsby"
-import mousetrap from "mousetrap"
 import Modal from "react-modal"
-import { SkipNavLink } from "@reach/skip-nav"
+import Helmet from "react-helmet"
 import MdClose from "react-icons/lib/md/close"
-
-import {
-  colors,
-  radii,
-  space,
-  shadows,
-  sizes,
-  fontSizes,
-  zIndices,
-} from "../utils/presets"
-import { breakpointGutter } from "../utils/styles"
+import { navigate, PageRenderer } from "gatsby"
+import presets, { colors } from "../utils/presets"
 import Banner from "../components/banner"
 import Navigation from "../components/navigation"
 import MobileNavigation from "../components/navigation-mobile"
 import PageWithSidebar from "../components/page-with-sidebar"
-import SiteMetadata from "../components/site-metadata"
+
+import mousetrap from "mousetrap"
 
 // Import Futura PT typeface
 import "../fonts/Webfonts/futurapt_book_macroman/stylesheet.css"
 import "../fonts/Webfonts/futurapt_bookitalic_macroman/stylesheet.css"
 import "../fonts/Webfonts/futurapt_demi_macroman/stylesheet.css"
 import "../fonts/Webfonts/futurapt_demiitalic_macroman/stylesheet.css"
-import "../fonts/Webfonts/futurapt_bold_macroman/stylesheet.css"
 
-import { skipLink } from "../utils/styles"
+// Other fonts
+import "typeface-spectral"
+import "typeface-space-mono"
 
 let windowWidth
 
@@ -65,6 +56,8 @@ class DefaultLayout extends React.Component {
   }
 
   render() {
+    const isHomepage = this.props.location.pathname === `/`
+
     // SEE: template-docs-markdown for why this.props.isSidebarDisabled is here
     const isSidebarDisabled =
       this.props.isSidebarDisabled || !this.props.itemList
@@ -78,7 +71,7 @@ class DefaultLayout extends React.Component {
 
     if (isModal && window.innerWidth > 750) {
       return (
-        <>
+        <React.Fragment>
           <PageRenderer
             location={{ pathname: this.props.modalBackgroundPath }}
           />
@@ -94,7 +87,7 @@ class DefaultLayout extends React.Component {
                 width: `750px`,
                 background: `none`,
                 border: `none`,
-                padding: `${space[8]} 0`,
+                padding: `40px 0`,
                 overflow: `visible`,
               },
               overlay: {
@@ -105,7 +98,7 @@ class DefaultLayout extends React.Component {
                 bottom: `unset`,
                 minHeight: `100%`,
                 minWidth: `100%`,
-                zIndex: zIndices.modal,
+                zIndex: 10,
                 overflowY: `auto`,
                 backgroundColor: `rgba(255, 255, 255, 0.95)`,
               },
@@ -115,30 +108,29 @@ class DefaultLayout extends React.Component {
           >
             <div
               css={{
-                backgroundColor: colors.white,
-                borderRadius: radii[2],
-                boxShadow: shadows.dialog,
+                backgroundColor: `#ffffff`,
+                borderRadius: presets.radius,
+                boxShadow: `0 0 90px -24px ${colors.gatsby}`,
                 position: `relative`,
               }}
             >
               <button
                 onClick={this.handleCloseModal}
                 css={{
-                  background: colors.white,
+                  background: colors.ui.bright,
                   border: 0,
-                  borderRadius: radii[6],
-                  color: colors.text.secondary,
+                  borderBottomLeftRadius: presets.radius,
+                  borderTopRightRadius: presets.radius,
+                  color: colors.gatsby,
                   cursor: `pointer`,
                   position: `absolute`,
                   left: `auto`,
-                  right: space[7],
-                  top: space[8],
+                  right: 0,
                   height: 40,
                   width: 40,
-                  fontSize: fontSizes[4],
                   "&:hover": {
-                    background: colors.ui.hover,
-                    color: colors.gatsby,
+                    background: colors.gatsby,
+                    color: `#fff`,
                   },
                 }}
               >
@@ -149,27 +141,56 @@ class DefaultLayout extends React.Component {
               {this.props.modalNextLink}
             </div>
           </Modal>
-        </>
+        </React.Fragment>
       )
     }
 
     return (
-      <>
-        <SiteMetadata pathname={this.props.location.pathname} />
-        <SkipNavLink css={skipLink}>Skip to main content</SkipNavLink>
-        <Banner />
+      <div className={isHomepage ? `is-homepage` : ``}>
+        <Helmet defaultTitle={`GatsbyJS`} titleTemplate={`%s | GatsbyJS`}>
+          <meta name="twitter:site" content="@gatsbyjs" />
+          <meta name="og:type" content="website" />
+          <meta name="og:site_name" content="GatsbyJS" />
+          <link
+            rel="canonical"
+            href={`https://gatsbyjs.org${this.props.location.pathname}`}
+          />
+          <html lang="en" />
+        </Helmet>
+        <Banner background={isHomepage ? `#402060` : false}>
+          These are the docs for v2.
+          {` `}
+          <a
+            href="https://v1.gatsbyjs.org/"
+            css={{
+              color: `#fff`,
+            }}
+          >
+            View the v1 docs
+            <span
+              css={{
+                display: `none`,
+                [presets.Mobile]: {
+                  display: `inline`,
+                },
+              }}
+            >
+              {` `}
+              instead
+            </span>
+          </a>
+          .
+        </Banner>
         <Navigation pathname={this.props.location.pathname} />
         <div
           className={`main-body`}
           css={{
-            paddingLeft: `env(safe-area-inset-left)`,
-            paddingRight: `env(safe-area-inset-right)`,
-            paddingTop: sizes.bannerHeight,
-            // make room for the mobile navigation
-            paddingBottom: sizes.headerHeight,
-            [breakpointGutter]: {
-              paddingTop: `calc(${sizes.bannerHeight} + ${sizes.headerHeight})`,
-              paddingBottom: 0,
+            paddingTop: presets.bannerHeight,
+            [presets.Tablet]: {
+              margin: `0 auto`,
+              paddingTop: isHomepage
+                ? presets.bannerHeight
+                : `calc(${presets.bannerHeight} + ${presets.headerHeight})`,
             },
           }}
         >
@@ -182,7 +203,7 @@ class DefaultLayout extends React.Component {
           />
         </div>
         <MobileNavigation />
-      </>
+      </div>
     )
   }
 }

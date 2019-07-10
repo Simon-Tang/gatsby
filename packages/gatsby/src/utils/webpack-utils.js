@@ -5,9 +5,6 @@ const flexbugs = require(`postcss-flexbugs-fixes`)
 const TerserPlugin = require(`terser-webpack-plugin`)
 const MiniCssExtractPlugin = require(`mini-css-extract-plugin`)
 const OptimizeCssAssetsPlugin = require(`optimize-css-assets-webpack-plugin`)
-const isWsl = require(`is-wsl`)
-
-const GatsbyWebpackStatsExtractor = require(`./gatsby-webpack-stats-extractor`)
 
 const builtinPlugins = require(`./webpack-plugins`)
 const eslintConfig = require(`./eslint-config`)
@@ -71,11 +68,11 @@ export type LoaderUtils = {
 }
 
 /**
- * Utils that produce webpack rule objects
+ * Utils that prodcue webpack rule objects
  */
 export type RuleUtils = {
   /**
-   * Handles JavaScript compilation via babel
+   * Handles Javascript compilation via babel
    */
   js: RuleFactory<*>,
   yaml: RuleFactory<*>,
@@ -94,7 +91,6 @@ export type PluginUtils = BuiltinPlugins & {
   extractText: PluginFactory,
   uglify: PluginFactory,
   moment: PluginFactory,
-  extractStats: PluginFactory,
 }
 
 /**
@@ -206,11 +202,7 @@ module.exports = async ({
     },
 
     postcss: (options = {}) => {
-      let {
-        plugins,
-        overrideBrowserslist = supportedBrowsers,
-        ...postcssOpts
-      } = options
+      let { plugins, browsers = supportedBrowsers, ...postcssOpts } = options
 
       return {
         loader: require.resolve(`postcss-loader`),
@@ -223,7 +215,7 @@ module.exports = async ({
 
             return [
               flexbugs,
-              autoprefixer({ overrideBrowserslist, flexbox: `no-2009` }),
+              autoprefixer({ browsers, flexbox: `no-2009` }),
               ...plugins,
             ]
           },
@@ -290,88 +282,18 @@ module.exports = async ({
   const rules = {}
 
   /**
-   * JavaScript loader via babel, includes userland code
-   * and packages that depend on `gatsby`
+   * Javascript loader via babel, excludes node_modules
    */
   {
-    let js = (
-      { modulesThatUseGatsby, ...options } = { modulesThatUseGatsby: [] }
-    ) => {
+    let js = (options = {}) => {
       return {
-        test: /\.(js|mjs|jsx)$/,
-        include: modulePath => {
-          // when it's not coming from node_modules we treat it as a source file.
-          if (!vendorRegex.test(modulePath)) {
-            return true
-          }
-
-          // If the module uses Gatsby as a dependency
-          // we want to treat it as src so we can extract queries
-          return modulesThatUseGatsby.some(module =>
-            modulePath.includes(module.path)
-          )
-        },
-        type: `javascript/auto`,
+        test: /\.jsx?$/,
+        exclude: vendorRegex,
         use: [loaders.js(options)],
       }
     }
 
     rules.js = js
-  }
-
-  /**
-   * Node_modules JavaScript loader via babel
-   * Excludes core-js & babel-runtime to speedup babel transpilation
-   * Excludes modules that use Gatsby since the `rules.js` already transpiles those
-   */
-  {
-    let dependencies = (
-      { modulesThatUseGatsby, ...options } = { modulesThatUseGatsby: [] }
-    ) => {
-      const jsOptions = {
-        babelrc: false,
-        configFile: false,
-        compact: false,
-        presets: [
-          [require.resolve(`babel-preset-gatsby/dependencies`), { stage }],
-        ],
-        // If an error happens in a package, it's possible to be
-        // because it was compiled. Thus, we don't want the browser
-        // debugger to show the original code. Instead, the code
-        // being evaluated would be much more helpful.
-        sourceMaps: false,
-      }
-
-      return {
-        test: /\.(js|mjs)$/,
-        exclude: modulePath => {
-          if (vendorRegex.test(modulePath)) {
-            // If dep uses Gatsby, exclude
-            if (
-              modulesThatUseGatsby.some(module =>
-                modulePath.includes(module.path)
-              )
-            ) {
-              return true
-            }
-            // If dep is babel-runtime or core-js, exclude
-            if (/@babel(?:\/|\\{1,2})runtime|core-js/.test(modulePath)) {
-              return true
-            }
-
-            // If dep is in node_modules and none of the above, include
-            return false
-          }
-
-          // If dep is user land code, exclude
-          return true
-        },
-        type: `javascript/auto`,
-        use: [loaders.js(jsOptions)],
-      }
-    }
-
-    rules.dependencies = dependencies
   }
 
   {
@@ -422,7 +344,7 @@ module.exports = async ({
   rules.media = () => {
     return {
       use: [loaders.url()],
-      test: /\.(mp4|webm|ogv|wav|mp3|m4a|aac|oga|flac)$/,
+      test: /\.(mp4|webm|wav|mp3|m4a|aac|oga|flac)$/,
     }
   }
 
@@ -445,7 +367,7 @@ module.exports = async ({
         loaders.css({ ...options, importLoaders: 1 }),
         loaders.postcss({ browsers }),
       ]
-      if (!isSSR) use.unshift(loaders.miniCssExtract({ hmr: !options.modules }))
+      if (!isSSR) use.unshift(loaders.miniCssExtract())
 
       return {
         use,
@@ -494,31 +416,18 @@ module.exports = async ({
   const plugins = { ...builtinPlugins }
 
   /**
-   * Minify JavaScript code without regard for IE8. Attempts
+   * Minify javascript code without regard for IE8. Attempts
    * to parallelize the work to save time. Generally only add in Production
    */
   plugins.minifyJs = ({ terserOptions, ...options } = {}) =>
     new TerserPlugin({
       cache: true,
-      // We can't use parallel in WSL because of https://github.com/gatsbyjs/gatsby/issues/6540
-      // This issue was fixed in https://github.com/gatsbyjs/gatsby/pull/12636
-      parallel: !isWsl,
+      parallel: true,
       exclude: /\.min\.js/,
       sourceMap: true,
       terserOptions: {
+        ecma: 8,
         ie8: false,
-        mangle: {
-          safari10: true,
-        },
-        parse: {
-          ecma: 8,
-        },
-        compress: {
-          ecma: 5,
-        },
-        output: {
-          ecma: 5,
-        },
         ...terserOptions,
       },
       ...options,
@@ -538,8 +447,6 @@ module.exports = async ({
     })
 
   plugins.moment = () => plugins.ignore(/^\.\/locale$/, /moment$/)
-
-  plugins.extractStats = options => new GatsbyWebpackStatsExtractor(options)
 
   return {
     loaders,

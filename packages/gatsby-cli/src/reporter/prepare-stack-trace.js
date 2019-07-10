@@ -14,11 +14,8 @@ module.exports = function prepareStackTrace(error, source) {
     .map(frame => wrapCallSite(map, frame))
     .filter(
       frame =>
-        frame.wasConverted &&
-        (!frame.getFileName() ||
-          !frame
-            .getFileName()
-            .match(/^webpack:\/+(lib\/)?(webpack\/|\.cache\/)/))
+        !frame.getFileName() ||
+        !frame.getFileName().match(/^webpack:\/+webpack\//)
     )
 
   error.codeFrame = getErrorSource(map, stack[0])
@@ -58,7 +55,6 @@ function wrapCallSite(map, frame) {
   frame.getColumnNumber = () => position.column + 1
   frame.getScriptNameOrSourceURL = () => position.source
   frame.toString = CallSiteToString
-  frame.wasConverted = true
   return frame
 }
 
@@ -86,7 +82,7 @@ function CallSiteToString() {
     }
 
     if (fileName) {
-      fileLocation += fileName.replace(/^webpack:\/+(lib\/)?/, ``)
+      fileLocation += fileName.replace(/^webpack:\/+/, ``)
     } else {
       // Source code does not originate from a file and is not native, but we
       // can still get the source position inside the source string, e.g. in
@@ -112,16 +108,20 @@ function CallSiteToString() {
   let isMethodCall =
     methodName && !((this.isToplevel && this.isToplevel()) || isConstructor)
   if (isMethodCall && functionName) {
-    if (typeName && functionName.indexOf(typeName) != 0) {
-      line += `${typeName}.`
-    }
-    line += functionName
-    if (
-      methodName &&
-      functionName.indexOf(`.` + methodName) !=
-        functionName.length - methodName.length - 1
-    ) {
-      line += ` [as ${methodName}]`
+    if (functionName) {
+      if (typeName && functionName.indexOf(typeName) != 0) {
+        line += `${typeName}.`
+      }
+      line += functionName
+      if (
+        methodName &&
+        functionName.indexOf(`.` + methodName) !=
+          functionName.length - methodName.length - 1
+      ) {
+        line += ` [as ${methodName}]`
+      }
+    } else {
+      line += typeName + `.` + (methodName || `<anonymous>`)
     }
   } else if (typeName && !functionName) {
     line += typeName + `.` + (methodName || `<anonymous>`)

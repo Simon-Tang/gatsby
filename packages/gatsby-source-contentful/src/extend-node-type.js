@@ -5,7 +5,6 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLFloat,
-  GraphQLJSON,
 } = require(`gatsby/graphql`)
 const qs = require(`qs`)
 const base64Img = require(`base64-img`)
@@ -19,9 +18,6 @@ const {
   ImageResizingBehavior,
   ImageCropFocusType,
 } = require(`./schemes`)
-
-// @see https://www.contentful.com/developers/docs/references/images-api/#/reference/resizing-&-cropping/specify-width-&-height
-const CONTENTFUL_IMAGE_MAX_SIZE = 4000
 
 const isImage = image =>
   _.includes(
@@ -85,19 +81,14 @@ const resolveFixed = (image, options) => {
 
   let desiredAspectRatio = aspectRatio
 
-  // If no dimension is given, set a default width
-  if (options.width === undefined && options.height === undefined) {
-    options.width = 400
-  }
-
   // If we're cropping, calculate the specified aspect ratio.
-  if (options.width !== undefined && options.height !== undefined) {
+  if (options.height) {
     desiredAspectRatio = options.width / options.height
   }
 
-  // If the user selected a height and width (so cropping) and fit option
+  // If the user selected a height (so cropping) and fit option
   // is not set, we'll set our defaults
-  if (options.width !== undefined && options.height !== undefined) {
+  if (options.height) {
     if (!options.resizingBehavior) {
       options.resizingBehavior = `fill`
     }
@@ -116,15 +107,8 @@ const resolveFixed = (image, options) => {
   fixedSizes.push(options.width * 3)
   fixedSizes = fixedSizes.map(Math.round)
 
-  // Filter out sizes larger than the image's width and the contentful image's max size.
-  const filteredSizes = fixedSizes.filter(size => {
-    const calculatedHeight = Math.round(size / desiredAspectRatio)
-    return (
-      size <= CONTENTFUL_IMAGE_MAX_SIZE &&
-      calculatedHeight <= CONTENTFUL_IMAGE_MAX_SIZE &&
-      size <= width
-    )
-  })
+  // Filter out sizes larger than the image's width.
+  const filteredSizes = fixedSizes.filter(size => size < width)
 
   // Sort sizes for prettiness.
   const sortedSizes = _.sortBy(filteredSizes)
@@ -157,19 +141,17 @@ const resolveFixed = (image, options) => {
     })
     .join(`,\n`)
 
-  let pickedHeight, pickedWidth
+  let pickedHeight
   if (options.height) {
     pickedHeight = options.height
-    pickedWidth = options.height * desiredAspectRatio
   } else {
     pickedHeight = options.width / desiredAspectRatio
-    pickedWidth = options.width
   }
 
   return {
     aspectRatio: desiredAspectRatio,
     baseUrl,
-    width: Math.round(pickedWidth),
+    width: Math.round(options.width),
     height: Math.round(pickedHeight),
     src: createUrl(baseUrl, {
       ...options,
@@ -187,18 +169,8 @@ const resolveFluid = (image, options) => {
 
   let desiredAspectRatio = aspectRatio
 
-  // If no dimension is given, set a default maxWidth
-  if (options.maxWidth === undefined && options.maxHeight === undefined) {
-    options.maxWidth = 800
-  }
-
-  // If only a maxHeight is given, calculate the maxWidth based on the height and the aspect ratio
-  if (options.maxHeight !== undefined && options.maxWidth === undefined) {
-    options.maxWidth = Math.round(options.maxHeight * desiredAspectRatio)
-  }
-
   // If we're cropping, calculate the specified aspect ratio.
-  if (options.maxHeight !== undefined && options.maxWidth !== undefined) {
+  if (options.maxHeight) {
     desiredAspectRatio = options.maxWidth / options.maxHeight
   }
 
@@ -224,25 +196,12 @@ const resolveFluid = (image, options) => {
   fluidSizes.push(options.maxWidth * 3)
   fluidSizes = fluidSizes.map(Math.round)
 
-  // Filter out sizes larger than the image's maxWidth and the contentful image's max size.
-  const filteredSizes = fluidSizes.filter(size => {
-    const calculatedHeight = Math.round(size / desiredAspectRatio)
-    return (
-      size <= CONTENTFUL_IMAGE_MAX_SIZE &&
-      calculatedHeight <= CONTENTFUL_IMAGE_MAX_SIZE &&
-      size <= width
-    )
-  })
+  // Filter out sizes larger than the image's maxWidth.
+  const filteredSizes = fluidSizes.filter(size => size < width)
 
-  // Add the original image (if it isn't already in there) to ensure the largest image possible
+  // Add the original image to ensure the largest image possible
   // is available for small images.
-  if (
-    !filteredSizes.includes(parseInt(width)) &&
-    parseInt(width) < CONTENTFUL_IMAGE_MAX_SIZE &&
-    Math.round(width / desiredAspectRatio) < CONTENTFUL_IMAGE_MAX_SIZE
-  ) {
-    filteredSizes.push(width)
-  }
+  filteredSizes.push(width)
 
   // Sort sizes for prettiness.
   const sortedSizes = _.sortBy(filteredSizes)
@@ -278,30 +237,21 @@ const resolveResize = (image, options) => {
 
   const { baseUrl, aspectRatio } = getBasicImageProps(image, options)
 
-  // If no dimension is given, set a default width
-  if (options.width === undefined && options.height === undefined) {
-    options.width = 400
-  }
-
-  // If the user selected a height and width (so cropping) and fit option
+  // If the user selected a height (so cropping) and fit option
   // is not set, we'll set our defaults
-  if (options.width !== undefined && options.height !== undefined) {
+  if (options.height) {
     if (!options.resizingBehavior) {
       options.resizingBehavior = `fill`
     }
   }
 
-  let pickedHeight = options.height,
-    pickedWidth = options.width
-
-  if (pickedWidth === undefined) {
-    pickedWidth = pickedHeight * aspectRatio
-  }
-
-  if (pickedHeight === undefined) {
+  const pickedWidth = options.width
+  let pickedHeight
+  if (options.height) {
+    pickedHeight = options.height
+  } else {
     pickedHeight = pickedWidth / aspectRatio
   }
-
   return {
     src: createUrl(image.file.url, options),
     width: Math.round(pickedWidth),
@@ -372,6 +322,7 @@ const fixedNodeType = ({ name, getTracedSVG }) => {
     args: {
       width: {
         type: GraphQLInt,
+        defaultValue: 400,
       },
       height: {
         type: GraphQLInt,
@@ -466,6 +417,7 @@ const fluidNodeType = ({ name, getTracedSVG }) => {
     args: {
       maxWidth: {
         type: GraphQLInt,
+        defaultValue: 800,
       },
       maxHeight: {
         type: GraphQLInt,
@@ -506,22 +458,6 @@ const fluidNodeType = ({ name, getTracedSVG }) => {
 }
 
 exports.extendNodeType = ({ type, store }) => {
-  if (type.name.match(/contentful.*RichTextNode/)) {
-    return {
-      nodeType: {
-        type: GraphQLString,
-        deprecationReason: `This field is deprecated, please use 'json' instead.`,
-      },
-      json: {
-        type: GraphQLJSON,
-        resolve: (source, fieldArgs) => {
-          const contentJSON = JSON.parse(source.internal.content)
-          return contentJSON
-        },
-      },
-    }
-  }
-
   if (type.name !== `ContentfulAsset`) {
     return {}
   }
@@ -593,6 +529,7 @@ exports.extendNodeType = ({ type, store }) => {
       args: {
         width: {
           type: GraphQLInt,
+          defaultValue: 400,
         },
         height: {
           type: GraphQLInt,

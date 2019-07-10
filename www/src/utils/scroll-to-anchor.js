@@ -65,9 +65,7 @@ const scrollToLocation = (element, targetPos, duration, callback) =>
   })
 
 const scrollToAnchor = (target, callback) => event => {
-  if (event) {
-    event.preventDefault()
-  }
+  event.preventDefault()
   const rootElement = getScrollableElement()
   const targetOffset = target.offsetTop
 

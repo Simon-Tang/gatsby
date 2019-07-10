@@ -1,5 +1,4 @@
-import fs from "fs"
-import sysPath from "path"
+const fs = require(`fs`)
 
 // default icons for generating icons
 exports.defaultIcons = [
@@ -54,28 +53,10 @@ exports.doesIconExist = function doesIconExist(srcIcon) {
   try {
     return fs.statSync(srcIcon).isFile()
   } catch (e) {
-    if (e.code !== `ENOENT`) {
+    if (e.code === `ENOENT`) {
+      return false
+    } else {
       throw e
     }
-
-    return false
   }
-}
-
-/**
- * @param {string} path The generic path to an icon
- * @param {string} digest The digest of the icon provided in the plugin's options.
- */
-exports.addDigestToPath = function(path, digest, method) {
-  if (method === `name`) {
-    const parsedPath = sysPath.parse(path)
-
-    return `${parsedPath.dir}/${parsedPath.name}-${digest}${parsedPath.ext}`
-  }
-
-  if (method === `query`) {
-    return `${path}?v=${digest}`
-  }
-
-  return path
 }

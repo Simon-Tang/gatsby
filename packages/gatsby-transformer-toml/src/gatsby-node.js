@@ -1,13 +1,8 @@
 const toml = require(`toml`)
 const _ = require(`lodash`)
+const crypto = require(`crypto`)
 
-async function onCreateNode({
-  node,
-  actions,
-  loadNodeContent,
-  createNodeId,
-  createContentDigest,
-}) {
+async function onCreateNode({ node, actions, loadNodeContent, createNodeId }) {
   const { createNode, createParentChildLink } = actions
   // Filter out non-toml content
   // Currently TOML files are considered null in 'mime-db'
@@ -23,7 +18,11 @@ async function onCreateNode({
   // This version suffers from:
   // 1) More TOML files -> more types
   // 2) Different files with the same name creating conflicts
-  const contentDigest = createContentDigest(parsedContent)
+  const parsedContentStr = JSON.stringify(parsedContent)
+  const contentDigest = crypto
+    .createHash(`md5`)
+    .update(parsedContentStr)
+    .digest(`hex`)
 
   const newNode = {
     ...parsedContent,

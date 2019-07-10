@@ -5,8 +5,6 @@ const fs = require(`fs-extra`)
 
 const normalize = require(`./normalize`)
 const fetchData = require(`./fetch`)
-const { createPluginConfig, validateOptions } = require(`./plugin-options`)
-const { downloadContentfulAssets } = require(`./download-contentful-assets`)
 
 const conflictFieldPrefix = `contentful`
 
@@ -22,7 +20,6 @@ const restrictedNodeFields = [
 
 exports.setFieldsOnGraphQLNodeType = require(`./extend-node-type`).extendNodeType
 
-exports.onPreBootstrap = validateOptions
 /***
  * Localization algorithm
  *
@@ -35,8 +32,8 @@ exports.onPreBootstrap = validateOptions
  */
 
 exports.sourceNodes = async (
-  { actions, getNode, getNodes, createNodeId, store, cache, reporter },
-  pluginOptions
+  { actions, getNode, getNodes, createNodeId, hasNodeChanged, store },
+  options
 ) => {
   const { createNode, deleteNode, touchNode, setPluginStatus } = actions
 
@@ -61,25 +58,19 @@ exports.sourceNodes = async (
     return
   }
 
-  const pluginConfig = createPluginConfig(pluginOptions)
-
-  const createSyncToken = () =>
-    `${pluginConfig.get(`spaceId`)}-${pluginConfig.get(
-      `environment`
-    )}-${pluginConfig.get(`host`)}`
-
+  options.host = options.host || `cdn.contentful.com`
+  options.environment = options.environment || `master` // default is always master
   // Get sync token if it exists.
   let syncToken
   if (
-    !pluginConfig.get(`forceFullSync`) &&
     store.getState().status.plugins &&
     store.getState().status.plugins[`gatsby-source-contentful`] &&
     store.getState().status.plugins[`gatsby-source-contentful`][
-      createSyncToken()
+      `${options.spaceId}-${options.environment}`
     ]
   ) {
     syncToken = store.getState().status.plugins[`gatsby-source-contentful`][
-      createSyncToken()
+      `${options.spaceId}-${options.environment}`
     ]
   }
 
@@ -90,8 +81,7 @@ exports.sourceNodes = async (
     locales,
   } = await fetchData({
     syncToken,
-    reporter,
-    pluginConfig,
+    ...options,
   })
 
   const entryList = normalize.buildEntryList({
@@ -140,9 +130,13 @@ exports.sourceNodes = async (
   const nextSyncToken = currentSyncData.nextSyncToken
 
   // Store our sync state for the next sync.
-  const newState = {}
-  newState[createSyncToken()] = nextSyncToken
-  setPluginStatus(newState)
+  // TODO: we do not store the token if we are using preview, since only initial sync is possible there
+  // This might change though
+  if (options.host !== `preview.contentful.com`) {
+    const newState = {}
+    newState[`${options.spaceId}-${options.environment}`] = nextSyncToken
+    setPluginStatus(newState)
+  }
 
   // Create map of resolvable ids so we can check links against them while creating
   // links.
@@ -172,6 +166,7 @@ exports.sourceNodes = async (
 
   // Update existing entry nodes that weren't updated but that need reverse
   // links added.
+  Object.keys(foreignReferenceMap)
   existingNodes
     .filter(n => _.includes(newOrUpdatedEntries, n.id))
     .forEach(n => {
@@ -216,24 +211,13 @@ exports.sourceNodes = async (
     })
   })
 
-  if (pluginConfig.get(`downloadLocal`)) {
-    await downloadContentfulAssets({
-      actions,
-      createNodeId,
-      store,
-      cache,
-      getNodes,
-      reporter,
-    })
-  }
-
   return
 }
 
 // Check if there are any ContentfulAsset nodes and if gatsby-image is installed. If so,
 // add fragments for ContentfulAsset and gatsby-image. The fragment will cause an error
 // if there's not ContentfulAsset nodes and without gatsby-image, the fragment is useless.
-exports.onPreExtractQueries = async ({ store, getNodesByType }) => {
+exports.onPreExtractQueries = async ({ store, getNodes }) => {
   const program = store.getState().program
 
   const CACHE_DIR = path.resolve(
@@ -241,7 +225,9 @@ exports.onPreExtractQueries = async ({ store, getNodesByType }) => {
   )
   await fs.ensureDir(CACHE_DIR)
 
-  if (getNodesByType(`ContentfulAsset`).length == 0) {
+  const nodes = getNodes()
+
+  if (!nodes.some(n => n.internal.type === `ContentfulAsset`)) {
     return
   }
 

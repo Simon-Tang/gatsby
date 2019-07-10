@@ -1,11 +1,11 @@
-const { slash } = require(`./utils`)
+const slash = require(`slash`)
 const path = require(`path`)
 const fs = require(`fs-extra`)
 const mime = require(`mime`)
 const prettyBytes = require(`pretty-bytes`)
 
 const md5File = require(`bluebird`).promisify(require(`md5-file`))
-const { createContentDigest } = require(`./fallback`)
+const crypto = require(`crypto`)
 
 exports.createFileNode = async (
   pathToFile,
@@ -27,10 +27,12 @@ exports.createFileNode = async (
   const stats = await fs.stat(slashedFile.absolutePath)
   let internal
   if (stats.isDirectory()) {
-    const contentDigest = createContentDigest({
-      stats: stats,
-      absolutePath: slashedFile.absolutePath,
-    })
+    const contentDigest = crypto
+      .createHash(`md5`)
+      .update(
+        JSON.stringify({ stats: stats, absolutePath: slashedFile.absolutePath })
+      )
+      .digest(`hex`)
     internal = {
       contentDigest,
       type: `Directory`,
@@ -55,9 +57,9 @@ exports.createFileNode = async (
       // useful information.
       id: createNodeId(pathToFile),
       children: [],
-      parent: null,
+      parent: `___SOURCE___`,
       internal,
-      sourceInstanceName: pluginOptions.name || `__PROGRAMMATIC__`,
+      sourceInstanceName: pluginOptions.name || `__PROGRAMATTIC__`,
       absolutePath: slashedFile.absolutePath,
       relativePath: slash(
         path.relative(

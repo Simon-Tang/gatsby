@@ -1,11 +1,11 @@
 const MongoClient = require(`mongodb`).MongoClient
+const crypto = require(`crypto`)
 const prepareMappingChildNode = require(`./mapping`)
-const sanitizeName = require(`./sanitize-name`)
+const _ = require(`lodash`)
 const queryString = require(`query-string`)
-const stringifyObjectIds = require(`./stringify-object-ids`)
 
 exports.sourceNodes = (
-  { actions, getNode, createNodeId, hasNodeChanged, createContentDigest },
+  { actions, getNode, createNodeId, hasNodeChanged },
   pluginOptions
 ) => {
   const { createNode } = actions
@@ -22,41 +22,28 @@ exports.sourceNodes = (
   let connectionExtraParams = getConnectionExtraParams(
     pluginOptions.extraParams
   )
-  const clientOptions = pluginOptions.clientOptions || { useNewUrlParser: true }
-  const connectionURL = pluginOptions.connectionString
-    ? `${pluginOptions.connectionString}/${dbName}${connectionExtraParams}`
-    : `mongodb://${authUrlPart}${serverOptions.address}:${
-        serverOptions.port
-      }/${dbName}${connectionExtraParams}`
-  const mongoClient = new MongoClient(connectionURL, clientOptions)
-  return mongoClient
-    .connect()
-    .then(client => {
-      const db = client.db(dbName)
+  const connectionURL = `mongodb://${authUrlPart}${serverOptions.address}:${
+    serverOptions.port
+  }/${dbName}${connectionExtraParams}`
+
+  return MongoClient.connect(connectionURL)
+    .then(db => {
       let collection = pluginOptions.collection || [`documents`]
-      if (!Array.isArray(collection)) {
+      if (!_.isArray(collection)) {
         collection = [collection]
       }
 
       return Promise.all(
         collection.map(col =>
-          createNodes(
-            db,
-            pluginOptions,
-            dbName,
-            createNode,
-            createNodeId,
-            col,
-            createContentDigest
-          )
+          createNodes(db, pluginOptions, dbName, createNode, createNodeId, col)
         )
       )
         .then(() => {
-          mongoClient.close()
+          db.close()
         })
         .catch(err => {
           console.warn(err)
-          mongoClient.close()
+          db.close()
           return err
         })
     })
@@ -72,10 +59,8 @@ function createNodes(
   dbName,
   createNode,
   createNodeId,
-  collectionName,
-  createContentDigest
+  collectionName
 ) {
-  const { preserveObjectIds = false } = pluginOptions
   return new Promise((resolve, reject) => {
     let collection = db.collection(collectionName)
     let cursor = collection.find()
@@ -86,17 +71,11 @@ function createNodes(
         reject(err)
       }
 
-      documents.forEach(({ _id, ...item }) => {
-        const id = _id.toHexString()
+      documents.forEach(item => {
+        var id = item._id.toString()
+        delete item._id
 
-        // only call recursive function to preserve relations represented by objectids if pluginoption set.
-        if (preserveObjectIds) {
-          for (let key in item) {
-            item[key] = stringifyObjectIds(item[key])
-          }
-        }
-
-        const node = {
+        var node = {
           // Data for the node.
           ...item,
           id: createNodeId(`${id}`),
@@ -104,11 +83,12 @@ function createNodes(
           parent: `__${collectionName}__`,
           children: [],
           internal: {
-            type: `mongodb${sanitizeName(dbName)}${sanitizeName(
-              collectionName
-            )}`,
+            type: `mongodb${caps(dbName)}${caps(collectionName)}`,
             content: JSON.stringify(item),
-            contentDigest: createContentDigest(item),
+            contentDigest: crypto
+              .createHash(`md5`)
+              .update(JSON.stringify(item))
+              .digest(`hex`),
           },
         }
         const childrenNodes = []
@@ -129,7 +109,7 @@ function createNodes(
                 mediaItemFieldKey,
                 node[mediaItemFieldKey],
                 mapObj[mediaItemFieldKey],
-                createContentDigest
+                createNode
               )
 
               node[`${mediaItemFieldKey}___NODE`] = mappingChildNode.id
@@ -147,6 +127,10 @@ function createNodes(
       resolve()
     })
   })
+}
+
+function caps(s) {
+  return s.replace(/\b\w/g, l => l.toUpperCase())
 }
 
 function getConnectionExtraParams(extraParams) {

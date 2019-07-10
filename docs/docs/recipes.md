@@ -2,38 +2,23 @@
 title: Recipes
 ---
 
-<!-- Basic template for a Gatsby recipe:
+<!-- Basic template:
+Task to accomplish.
+1-2 sentences about it.
+Relevant links out (tutorial, doc pages, plugin readmes, etc).
 
-## Task to accomplish.
-1-2 sentences about it. The more concise and focused, the better!
+Links:
+* tutorial link
+* docs link
+* additional, if needed
 
-### Prerequisites
-- System/version requirements
-- Everything necessary to set up the task
-- Including setting up accounts at other sites, like Netlify
-- See [docs templates](/docs/docs-templates/) for formatting tips
+And yeah — those three things are exactly what we're thinking. A first step would be to just go through the tutorial and pull out all the basic things we teach there in a condensed form e.g. creating a site, creating a page, linking between pages, etc. -->
 
-### Step-by-step directions
-Each step should be repeatable and to-the-point. Anything not critical to the task should be omitted.
-
-#### Live example (optional)
-A live example may not be possible depending on the nature of the recipe, in which case it is fine to omit.
-
-### Additional resources
-- Tutorials
-- Docs pages
-- Plugin READMEs
-- etc.
-
-See [docs templates](/docs/docs-templates/) in the contributing docs for more help.
--->
-
-Craving a happy medium between [full-length tutorials](/tutorial/) and crawling the [docs](/docs/)? Here's a cookbook of guiding recipes on how to build things, Gatsby style.
+Craving a happy medium between doing the [full tutorial](/tutorial/) and crawling the [full docs](<(/tutorial/)>)? Here's a quick guiding reference for how to build things, Gatsby style.
 
 ## Table of Contents
 
-- [Using Gatsby without Graphql](#using-gatsby-without-graphql)
-- [Gatsby project structure](#gatsby-project-structure)
+- [Using Unstructured Data](#using-unstructured-data)
 - [Using a starter](#using-a-starter)
 - [Creating pages](#creating-pages)
 - [Linking between pages](#linking-between-pages)
@@ -43,12 +28,13 @@ Craving a happy medium between [full-length tutorials](/tutorial/) and crawling 
 - [Querying data](#querying-data)
 - [Sourcing data](#sourcing-data)
 - [Transforming data](#transforming-data)
+- [Gatsby project structure](#gatsby-project-structure)
 
-## Using Gatsby without GraphQL
+## Using Unstructured Data
 
-You can use the node `createPages` API to pull unstructured data directly into Gatsby sites rather than through GraphQL and source plugins. This is a great choice for small sites, while GraphQL and source plugins can help save time with more complex sites.
+You can use the node `createPages` API to pull unstructured data into Gatsby sites rather than GraphQL and source plugins. This is a great choice for small sites, while GraphQL and source plugins can help save time with more complex sites.
 
-- Learn how to pull unstructured data into Gatsby sites in [Using Gatsby without GraphQL](/docs/using-gatsby-without-graphql/)
+- Learn how to pull unstructured data into Gatsby sites in [Using Unstructured Data](/docs/using-unstructured-data/)
 - Learn when and how to use GraphQL and source plugins for more complex Gatsby sites in [Querying data with GraphQL](/docs/querying-with-graphql/)
 
 ## Gatsby project structure
@@ -60,12 +46,12 @@ Read the [Gatsby project structure](/docs/gatsby-project-structure/) guide for a
 Starters are boilerplate Gatsby sites maintained officially, or by the community.
 
 - Learn how to use the Gatsby CLI tool to use starters in [tutorial part one](/tutorial/part-one/#using-gatsby-starters)
-- Browse the [Starter Library](/starters/)
+- See a list of [official and community starters](/docs/gatsby-starters/)
 - Check out Gatsby's [official default starter](https://github.com/gatsbyjs/gatsby-starter-default)
 
 ## Creating pages
 
-You can create pages in Gatsby explicitly by defining React components in `src/pages/`, or programmatically by using the `createPages` API.
+You can create pages in Gatsby explicitly by definining React components in `src/pages/`, or programmatically by using the `createPages` API.
 
 - Walk through creating a page by defining a React component in `src/pages` in [tutorial part one](/tutorial/part-one/#familiarizing-with-gatsby-pages)
 - Walk through programmatically creating pages in [tutorial part seven](/tutorial/part-seven/)
@@ -73,33 +59,10 @@ You can create pages in Gatsby explicitly by defining React components in `src/p
 
 ## Linking between pages
 
-Routing in Gatsby relies on the `<Link />` component.
+Routing in Gatsby relies on the `<Link />` component, a wrapper around [@reach/router's Link component](https://reach.tech/router/api/Link).
 
-### Prerequisites
-
-- A Gatsby site with two page components: `index.js` and `contact.js`
-- The Gatsby `<Link />` component
-- The [Gatsby CLI](/docs/gatsby-cli/) to run `gatsby develop`
-
-### Directions
-
-1. Open the index page component (`src/pages/index.js`), import the `<Link />` component from Gatsby, add a `<Link />` component above the header, and give it a `to` property with the value of `"/contact/"` for the pathname:
-
-```jsx:title=src/pages/index.js
-import React from "react"
-import { Link } from "gatsby"
-
-export default () => (
-  <div style={{ color: `purple` }}>
-    <Link to="/contact/">Contact</Link>
-    <p>What a world.</p>
-  </div>
-)
-```
-
-2. Run `gatsby develop` and navigate to the index page. You should have a link that takes you to the contact page when clicked!
-
-> **Note**: Gatsby's `<Link />` component is a wrapper around [`@reach/router`'s Link component](https://reach.tech/router/api/Link). For more information about Gatsby's `<Link />` component, consult the [API reference for `<Link />`](/docs/gatsby-link/).
+- Walk through using Gatsby's `<Link />` component in [tutorial part one](/tutorial/part-one/#linking-between-pages)
+- Learn more about how `<Link />` works [in the docs](/docs/gatsby-link/)
 
 ## Styling
 
@@ -125,98 +88,19 @@ To wrap pages with layouts, use normal React components.
 Showtime.
 
 - Walk through building and deploying an example site in [tutorial part one](/tutorial/part-one/#deploying-a-gatsby-site)
-- Learn how to make sure your site is configured properly to be [searchable, shareable, and properly navigable](/docs/preparing-for-site-launch/)
+- Learn how to make sure your site is configured properly to be [searchable, sharable, and properly navigable](/docs/preparing-for-site-launch/)
 - Learn about [performance optimization](/docs/performance/)
 - Read about [other deployment related topics](/docs/deploying-and-hosting/)
 
 ## Querying data
 
-### The StaticQuery Component
+In Gatsby, you access data through a query language called [GraphQL](https://graphql.org/).
 
-`StaticQuery` is a component for retrieving data from Gatsby's data layer in [non-page components](/docs/static-query/).
-
-#### Directions
-
-1. The `StaticQuery` Component requires two render props: `query` and `render`.
-
-```jsx:title=src/components/NonPageComponent.js
-import React from "react"
-import { StaticQuery, graphql } from "gatsby"
-
-const NonPageComponent = () => (
-  <StaticQuery
-    query={graphql`
-      query NonPageQuery {
-        site {
-          siteMetadata {
-            title
-          }
-        }
-      }
-    `}
-    render={data => (
-      <h1>
-        Querying title from NonPageComponent with StaticQuery:
-        {data.site.siteMetadata.title}
-      </h1>
-    )}
-  />
-)
-
-export default NonPageComponent
-```
-
-2. You can now use this component as you would [any other component](/docs/building-with-components#non-page-components).
-
-### Querying data with the useStaticQuery hook
-
-Since Gatsby v2.1.0, you can use the `useStaticQuery` hook to query data with a JavaScript function instead of a component.
-
-#### Prerequisites
-
-- You'll need React and ReactDOM 16.8.0 or later (keeping Gatsby updated handles this).
-- The [Rules of React Hooks](https://reactjs.org/docs/hooks-rules.html)
-
-#### Directions
-
-The `useStaticQuery` hook is a JavaScript function that takes a GraphQL query and returns the requested data.
-
-1. Import `useStaticQuery` and `graphql` from `gatsby` in order to use the hook query the data.
-
-2. In the start of a stateless functional component, assign a variable to the value of `useStaticQuery` with your `graphql` query passed as an argument.
-
-3. In the JSX code returned from your component, you can reference that variable to handle the returned data.
-
-```jsx:title=src/components/NonPageComponent.js
-import React from "react"
-import { useStaticQuery, graphql } from "gatsby"
-
-const NonPageComponent = () => {
-  const data = useStaticQuery(graphql`
-    query NonPageQuery {
-      site {
-        siteMetadata {
-          title
-        }
-      }
-    }
-  `)
-  return (
-    <h1>
-      Querying title from NonPageComponent: {data.site.siteMetadata.title}
-    </h1>
-  )
-}
-
-export default NonPageComponent
-```
-
-#### Additional resources
-
-- [More on Static Query for querying data in components](/docs/static-query/)
-- [The difference between a static query and a page query](/docs/static-query/#how-staticquery-differs-from-page-query)
-- [More on the useStaticQuery hook](/docs/use-static-query/)
-- [Visualize your data with GraphiQL](/docs/introducing-graphiql/)
+- Walk through an example of how Gatsby's data layer [pulls data into components using GraphQL](/tutorial/part-four/#how-gatsbys-data-layer-uses-graphql-to-pull-data-into-components)
+- Walk through [using Gatsby's `graphql` tag for page queries](/tutorial/part-five/#build-a-page-with-a-graphql-query)
+- Read through a conceptual guide on [querying data with GraphQL in Gatsby](/docs/querying-with-graphql/)
+- Learn more about the `graphql` tag -- [querying data in a Gatsby page](/docs/page-query/)
+- Learn more about `<StaticQuery />` -- [querying data in (non-page) components](/docs/static-query/)
 
 ## Sourcing data
 
@@ -224,7 +108,7 @@ Data sourcing in Gatsby is plugin-driven; Source plugins fetch data from their s
 
 - Walk through an example using the `gatsby-source-filesystem` plugin in [tutorial part five](/tutorial/part-five/#source-plugins)
 - Search available source plugins in the [Gatsby library](/plugins/?=source)
-- Understand source plugins by building one in the [Pixabay source plugin tutorial](/docs/pixabay-source-plugin-tutorial/)
+- Understand source plugins by building one in the [source plugin tutorial](/docs/source-plugin-tutorial/)
 
 ## Transforming data
 

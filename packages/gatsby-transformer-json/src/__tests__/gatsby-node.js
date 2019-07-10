@@ -1,5 +1,4 @@
 const Promise = require(`bluebird`)
-const os = require(`os`)
 
 const { onCreateNode } = require(`../gatsby-node`)
 
@@ -12,7 +11,6 @@ const bootstrapTest = async (node, pluginOptions = {}) => {
   const actions = { createNode, createParentChildLink }
   const createNodeId = jest.fn()
   createNodeId.mockReturnValue(`uuid-from-gatsby`)
-  const createContentDigest = jest.fn().mockReturnValue(`contentDigest`)
 
   return await onCreateNode(
     {
@@ -20,7 +18,6 @@ const bootstrapTest = async (node, pluginOptions = {}) => {
       loadNodeContent,
       actions,
       createNodeId,
-      createContentDigest,
     },
     pluginOptions
   ).then(() => {
@@ -34,7 +31,7 @@ const bootstrapTest = async (node, pluginOptions = {}) => {
 describe(`Process JSON nodes correctly`, () => {
   const baseNode = {
     id: `whatever`,
-    parent: null,
+    parent: `SOURCE`,
     children: [],
     internal: {
       contentDigest: `whatever`,
@@ -45,7 +42,7 @@ describe(`Process JSON nodes correctly`, () => {
   const baseFileNode = {
     ...baseNode,
     name: `nodeName`,
-    dir: `${os.tmpdir()}/foo/`,
+    dir: `/tmp/foo/`,
     internal: {
       ...baseNode.internal,
       type: `File`,

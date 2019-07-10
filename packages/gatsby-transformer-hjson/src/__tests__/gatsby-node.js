@@ -1,5 +1,4 @@
 const Promise = require(`bluebird`)
-const os = require(`os`)
 const HJSON = require(`hjson`)
 
 const { onCreateNode } = require(`../gatsby-node`)
@@ -8,7 +7,7 @@ describe(`Process HJSON nodes correctly`, () => {
   const node = {
     name: `nodeName`,
     id: `whatever`,
-    parent: null,
+    parent: `SOURCE`,
     children: [],
     internal: {
       contentDigest: `whatever`,
@@ -32,14 +31,12 @@ describe(`Process HJSON nodes correctly`, () => {
     const actions = { createNode, createParentChildLink }
     const createNodeId = jest.fn()
     createNodeId.mockReturnValue(`uuid-from-gatsby`)
-    const createContentDigest = jest.fn().mockReturnValue(`contentDigest`)
 
     await onCreateNode({
       node,
       loadNodeContent,
       actions,
       createNodeId,
-      createContentDigest,
     }).then(() => {
       expect(createNode.mock.calls).toMatchSnapshot()
       expect(createParentChildLink.mock.calls).toMatchSnapshot()
@@ -51,21 +48,19 @@ describe(`Process HJSON nodes correctly`, () => {
   it(`correctly creates a node from HJSON which is a single object`, async () => {
     const data = { id: `foo`, blue: true, funny: `yup` }
     node.content = HJSON.stringify(data)
-    node.dir = `${os.tmpdir()}/foo/`
+    node.dir = `/tmp/foo/`
 
     const createNode = jest.fn()
     const createParentChildLink = jest.fn()
     const actions = { createNode, createParentChildLink }
     const createNodeId = jest.fn()
     createNodeId.mockReturnValue(`uuid-from-gatsby`)
-    const createContentDigest = jest.fn().mockReturnValue(`contentDigest`)
 
     await onCreateNode({
       node,
       loadNodeContent,
       actions,
       createNodeId,
-      createContentDigest,
     }).then(() => {
       expect(createNode.mock.calls).toMatchSnapshot()
       expect(createParentChildLink.mock.calls).toMatchSnapshot()

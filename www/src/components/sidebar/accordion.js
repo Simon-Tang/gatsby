@@ -2,8 +2,9 @@ import React, { Fragment } from "react"
 
 import Item from "./item"
 import { Title, TitleButton, SplitButton } from "./section-title"
-import { colors, space, transition } from "../../utils/presets"
-import presets from "../../utils/sidebar/presets"
+import presets, { colors } from "../../utils/presets"
+
+const paddingLeft = level => (level === 0 ? level + 1 * 40 : level + 1 * 20)
 
 const ItemWithSubitems = ({
   activeItemLink,
@@ -11,13 +12,13 @@ const ItemWithSubitems = ({
   isExpanded,
   isParentOfActiveItem,
   item,
+  level,
   location,
   onLinkClick,
   onSectionTitleClick,
   uid,
-  disableAccordions,
 }) => {
-  const SectionTitleComponent = disableAccordions ? Title : TitleButton
+  const SectionTitleComponent = item.disableAccordions ? Title : TitleButton
   const isActive = item.link === activeItemLink.link
 
   return (
@@ -29,6 +30,7 @@ const ItemWithSubitems = ({
           isExpanded={isExpanded}
           isParentOfActiveItem={isParentOfActiveItem}
           item={item}
+          level={level}
           location={location}
           onLinkClick={onLinkClick}
           onSectionTitleClick={onSectionTitleClick}
@@ -40,7 +42,9 @@ const ItemWithSubitems = ({
           isExpanded={isExpanded}
           isParentOfActiveItem={isParentOfActiveItem}
           item={item}
+          level={level}
           onSectionTitleClick={onSectionTitleClick}
+          title={item.title}
           uid={uid}
         />
       )}
@@ -77,54 +81,21 @@ class Accordion extends React.Component {
       isActive,
       isParentOfActiveItem,
       item,
+      level,
       location,
       onLinkClick,
       onSectionTitleClick,
       openSectionHash,
-      isSingle,
-      disableAccordions,
     } = this.props
     const uid = `item_` + this.state.uid
-    const isExpanded = openSectionHash[item.title] || disableAccordions
+    const isExpanded = openSectionHash[item.title] || item.disableAccordions
 
     return (
       <li
         css={{
           background:
-            (isParentOfActiveItem && item.level === 0) ||
-            (isActive && item.level === 0)
-              ? presets.activeSectionBackground
-              : false,
+            isExpanded && isActive && level > 0 ? colors.ui.light : false,
           position: `relative`,
-          transition: `all ${transition.speed.fast} ${
-            transition.curve.default
-          }`,
-          marginTop:
-            item.level === 0 && disableAccordions && !isSingle
-              ? `${space[4]} !important`
-              : false,
-          ...(item.level === 0 &&
-            !isSingle && {
-              "::before": {
-                content: `" "`,
-                position: `absolute`,
-                borderTop:
-                  !isExpanded && !isSingle && !isActive
-                    ? `1px solid ${colors.ui.border.subtle}`
-                    : `1px solid ${colors.purple[10]}`,
-                left:
-                  (isParentOfActiveItem && isExpanded) ||
-                  (isActive && isExpanded)
-                    ? 0
-                    : space[6],
-                right: 0,
-                top: 0,
-              },
-              ":after": {
-                top: `auto`,
-                bottom: -1,
-              },
-            }),
         }}
       >
         <ItemWithSubitems
@@ -135,30 +106,21 @@ class Accordion extends React.Component {
           isExpanded={isExpanded}
           isParentOfActiveItem={isParentOfActiveItem}
           item={item}
+          level={level}
           location={location}
           onLinkClick={onLinkClick}
           onSectionTitleClick={onSectionTitleClick}
           uid={uid}
-          disableAccordions={disableAccordions}
         />
         <ul
           id={uid}
           css={{
-            listStyle: `none`,
-            margin: 0,
-            position: `relative`,
+            ...styles.ul,
             display: isExpanded ? `block` : `none`,
-            ...(item.ui === `steps` && {
-              "&:after": {
-                background: colors.ui.border.subtle,
-                bottom: 0,
-                content: `''`,
-                left: 27,
-                position: `absolute`,
-                top: 0,
-                width: 1,
-              },
-            }),
+            paddingBottom: level === 0 && isExpanded ? 40 : false,
+            "& li": {
+              paddingLeft: paddingLeft(level),
+            },
           }}
         >
           {item.items.map(subitem => (
@@ -168,11 +130,17 @@ class Accordion extends React.Component {
               createLink={createLink}
               item={subitem}
               key={subitem.title}
+              level={level + 1}
               location={location}
               onLinkClick={onLinkClick}
               isExpanded={isExpanded}
               onSectionTitleClick={onSectionTitleClick}
               openSectionHash={openSectionHash}
+              styles={{
+                ...(item.ui === `steps` && {
+                  ...styles.ulStepsUI,
+                }),
+              }}
               ui={item.ui}
             />
           ))}
@@ -183,3 +151,34 @@ class Accordion extends React.Component {
 }
 
 export default Accordion
+
+const styles = {
+  ul: {
+    listStyle: `none`,
+    margin: 0,
+    position: `relative`,
+    "& li": {
+      marginBottom: 0,
+    },
+  },
+  ulStepsUI: {
+    "&:after": {
+      background: colors.ui.bright,
+      bottom: `1.5rem`,
+      content: ` `,
+      left: 0,
+      position: `absolute`,
+      top: `1.5rem`,
+      width: 1,
+    },
+    "&:before": {
+      borderLeft: `1px dashed ${colors.ui.bright}`,
+      bottom: 0,
+      content: ` `,
+      height: `100%`,
+      left: 0,
+      position: `absolute`,
+      width: 0,
+    },
+  },
+}

@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    siteName: `Using TypeScript Example`,
+    siteName: `Using Typescript Example`,
   },
   plugins: [
     `gatsby-plugin-typescript`,

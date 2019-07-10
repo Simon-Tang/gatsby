@@ -1,3 +1,4 @@
+const crypto = require(`crypto`)
 const uuidv4 = require(`uuid/v4`)
 const { buildSchema, printSchema } = require(`graphql`)
 const {
@@ -9,17 +10,16 @@ const {
 const { createHttpLink } = require(`apollo-link-http`)
 const fetch = require(`node-fetch`)
 const invariant = require(`invariant`)
-
 const {
   NamespaceUnderFieldTransform,
   StripNonQueryTransform,
 } = require(`./transforms`)
 
 exports.sourceNodes = async (
-  { actions, createNodeId, cache, createContentDigest },
+  { actions, createNodeId, cache, store },
   options
 ) => {
-  const { addThirdPartySchema, createNode } = actions
+  const { addThirdPartySchema, createPageDependency, createNode } = actions
   const {
     url,
     typeName,
@@ -41,7 +41,7 @@ exports.sourceNodes = async (
   )
   invariant(
     (url && url.length > 0) || createLink,
-    `gatsby-source-graphql requires either option \`url\` or \`createLink\` callback`
+    `gatsby-source-graphql requiers either option \`url\` or \`createLink\` callback`
   )
 
   let link
@@ -80,19 +80,11 @@ exports.sourceNodes = async (
   })
 
   const nodeId = createNodeId(`gatsby-source-graphql-${typeName}`)
-  const node = createSchemaNode({
-    id: nodeId,
-    typeName,
-    fieldName,
-    createContentDigest,
-  })
+  const node = createSchemaNode({ id: nodeId, typeName, fieldName })
   createNode(node)
 
   const resolver = (parent, args, context) => {
-    context.nodeModel.createPageDependency({
-      path: context.path,
-      nodeId: nodeId,
-    })
+    createPageDependency({ path: context.path, nodeId: nodeId })
     return {}
   }
 
@@ -112,14 +104,7 @@ exports.sourceNodes = async (
     if (refetchInterval) {
       const msRefetchInterval = refetchInterval * 1000
       const refetcher = () => {
-        createNode(
-          createSchemaNode({
-            id: nodeId,
-            typeName,
-            fieldName,
-            createContentDigest,
-          })
-        )
+        createNode(createSchemaNode({ id: nodeId, typeName, fieldName }))
         setTimeout(refetcher, msRefetchInterval)
       }
       setTimeout(refetcher, msRefetchInterval)
@@ -127,9 +112,12 @@ exports.sourceNodes = async (
   }
 }
 
-function createSchemaNode({ id, typeName, fieldName, createContentDigest }) {
+function createSchemaNode({ id, typeName, fieldName }) {
   const nodeContent = uuidv4()
-  const nodeContentDigest = createContentDigest(nodeContent)
+  const nodeContentDigest = crypto
+    .createHash(`md5`)
+    .update(nodeContent)
+    .digest(`hex`)
   return {
     id,
     typeName: typeName,

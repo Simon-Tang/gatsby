@@ -32,7 +32,7 @@ These routes will exist on the client only and will not correspond to index.html
 
 To create client-only routes, add the following code to your site’s `gatsby-node.js` file:
 
-```javascript:title=gatsby-node.js
+```javascript
 // Implement the Gatsby API “onCreatePage”. This is
 // called after every page is created.
 exports.onCreatePage = async ({ page, actions }) => {
@@ -51,7 +51,5 @@ exports.onCreatePage = async ({ page, actions }) => {
 
 > 💡 Note: There's also a plugin to simplify the creation of client-only routes in your site:
 > [gatsby-plugin-create-client-paths](/packages/gatsby-plugin-create-client-paths/).
-
-> Tip: For applications with complex routing, you may want to override Gatsby's default scroll behavior with the [shouldUpdateScroll](/docs/browser-apis/#shouldUpdateScroll) Browser API.
 
 Check out the ["simple auth" example site](https://github.com/gatsbyjs/gatsby/blob/master/examples/simple-auth/README.md) for a demo implementing user authentication and restricted client-only routes.

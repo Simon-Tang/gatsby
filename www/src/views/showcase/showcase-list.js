@@ -7,24 +7,17 @@ import EmptyGridItems from "../shared/empty-grid-items"
 import qs from "qs"
 
 import ShowcaseItemCategories from "./showcase-item-categories"
-import {
-  space,
-  lineHeights,
-  transition,
-  mediaQueries,
-  colors,
-  radii,
-} from "../../utils/presets"
+import { rhythm } from "../../utils/typography"
 
 import GithubIcon from "react-icons/lib/go/mark-github"
 import LaunchSiteIcon from "react-icons/lib/md/launch"
 import FeaturedIcon from "../../assets/featured-sites-icons--white.svg"
 
-const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
+const ShowcaseList = ({ items, count }) => {
   if (count) items = items.slice(0, count)
 
   return (
-    <main id={`reach-skip-nav`} css={{ ...styles.showcaseList }}>
+    <div css={{ ...styles.showcaseList }}>
       {items.map(
         ({ node }) =>
           node.fields &&
@@ -39,7 +32,6 @@ const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
                 slug={node.fields.slug}
                 image={node.childScreenshot}
                 title={node.title}
-                state={{ filters }}
               >
                 <strong className="title">{node.title}</strong>
               </ThumbnailLink>
@@ -53,14 +45,11 @@ const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
               >
                 <div
                   css={{
-                    paddingRight: space[5],
-                    lineHeight: lineHeights.dense,
+                    paddingRight: rhythm(1),
+                    lineHeight: 1.3,
                   }}
                 >
-                  <ShowcaseItemCategories
-                    categories={node.categories}
-                    onCategoryClick={onCategoryClick}
-                  />
+                  <ShowcaseItemCategories categories={node.categories} />
                 </div>
                 <div css={{ flex: `0 0 auto`, textAlign: `right` }}>
                   {node.source_url && (
@@ -87,36 +76,7 @@ const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
                 </div>
                 {node.featured && (
                   <Link
-                    css={{
-                      "&&": {
-                        display: `none`,
-                        transition: `background ${transition.speed.slow} ${
-                          transition.curve.default
-                        }, transform ${transition.speed.slow} ${
-                          transition.curve.default
-                        }`,
-                        [mediaQueries.lg]: {
-                          alignItems: `center`,
-                          background: colors.accent,
-                          border: `none`,
-                          borderTopRightRadius: radii[1],
-                          borderBottomLeftRadius: radii[1],
-                          boxShadow: `none`,
-                          cursor: `pointer`,
-                          display: `flex`,
-                          height: 24,
-                          margin: 0,
-                          padding: 0,
-                          position: `absolute`,
-                          top: 0,
-                          right: 0,
-                          width: 24,
-                          "&:hover": {
-                            background: colors.gatsby,
-                          },
-                        },
-                      },
-                    }}
+                    css={{ "&&": { ...styles.featuredItem } }}
                     to={`/showcase?${qs.stringify({
                       filters: `Featured`,
                     })}`}
@@ -125,7 +85,7 @@ const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
                     <img
                       src={FeaturedIcon}
                       alt="icon"
-                      css={{ margin: `0 auto`, display: `block` }}
+                      css={{ ...styles.featuredIcon }}
                     />
                   </Link>
                 )}
@@ -134,7 +94,7 @@ const ShowcaseList = ({ items, count, filters, onCategoryClick }) => {
           )
       )}
       {items.length && <EmptyGridItems styles={styles.showcaseItem} />}
-    </main>
+    </div>
   )
 }
 

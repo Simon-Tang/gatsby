@@ -1,22 +1,41 @@
 import React, { Fragment } from "react"
 import { Link } from "gatsby"
 import qs from "qs"
+
+import URLQuery from "../../components/url-query"
 import { colors } from "../../utils/presets"
 
-const ScrollToLink = ({ to, ...rest }) => <a href={to} {...rest} />
+const ScrollToLink = ({ onClick, category, showcase, ...rest }) => {
+  const onClickHandler = onClick
+  return (
+    <URLQuery>
+      {(_, updateQuery) => (
+        <a
+          href="#showcase"
+          onClick={onClickHandler(showcase, updateQuery, category)}
+          {...rest}
+        >
+          {category}
+        </a>
+      )}
+    </URLQuery>
+  )
+}
 
-const ShowcaseItemCategories = ({ categories, onCategoryClick }) => {
-  const LinkComponent = onCategoryClick ? ScrollToLink : Link
+const ShowcaseItemCategories = ({ categories, onClickHandler, showcase }) => {
+  const LinkComponent = onClickHandler ? ScrollToLink : Link
 
   return categories.map((c, i) => (
     <Fragment key={c}>
       <LinkComponent
         css={{
           "&&": {
-            color: colors.text.secondary,
+            color: colors.gray.calm,
             fontWeight: `normal`,
             borderBottom: `none`,
+            boxShadow: `none`,
             "&:hover": {
+              background: `none`,
               color: colors.gatsby,
             },
           },
@@ -24,12 +43,8 @@ const ShowcaseItemCategories = ({ categories, onCategoryClick }) => {
         to={`/showcase?${qs.stringify({
           filters: [c],
         })}`}
-        onClick={e => {
-          e.preventDefault()
-          if (onCategoryClick) {
-            onCategoryClick(c)
-          }
-        }}
+        onClick={onClickHandler}
+        showcase={showcase}
         category={c}
       >
         {c}

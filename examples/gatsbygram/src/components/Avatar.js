@@ -30,8 +30,8 @@ function Avatar({ user }) {
           height: rhythm(4),
         },
         [`@media (min-width: 600px)`]: {
-          width: rhythm(6),
-          height: rhythm(6),
+          width: `inherit`,
+          height: `inherit`,
         },
       }}
     />

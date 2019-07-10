@@ -21,12 +21,11 @@ class Item extends React.PureComponent {
       isActive,
       openSectionHash,
       item,
+      level,
       location,
       onLinkClick,
       onSectionTitleClick,
       ui,
-      isSingle,
-      disableAccordions,
     } = this.props
 
     const isParentOfActiveItem = isItemActive(activeItemParents, item)
@@ -46,22 +45,25 @@ class Item extends React.PureComponent {
             }
             isParentOfActiveItem={isParentOfActiveItem}
             item={item}
+            level={level}
             location={location}
             onLinkClick={onLinkClick}
             openSectionHash={openSectionHash}
             onSectionTitleClick={onSectionTitleClick}
-            isSingle={isSingle}
-            disableAccordions={disableAccordions}
           />
         ) : (
-          <li>
+          <li
+            css={{
+              ...this.props.styles,
+              paddingLeft: level === 0 ? 40 : false,
+            }}
+          >
             {createLink({
               isActive: item.link === activeItemLink.link,
               item,
               location,
               onLinkClick,
-              ui,
-              level: item.level,
+              stepsUI: ui === `steps`,
             })}
           </li>
         )}

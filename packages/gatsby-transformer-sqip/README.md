@@ -47,11 +47,9 @@ With `gatsby-transformer-sharp`:
 
 ```graphql
 image {
-  sqip(numberOfPrimitives: 12, blur: 12, width: 256, height: 256) {
-    dataURI
-  },
-  fluid(maxWidth: 400, maxHeight: 400) {
-    ...GatsbyImageSharpFluid_noBase64
+  sqip(numberOfPrimitives: 12, blur: 12, width: 256, height: 256),
+  sizes(maxWidth: 400, maxHeight: 400) {
+    ...GatsbyImageSharpSizes_noBase64
   }
 }
 ```
@@ -60,11 +58,9 @@ With `gatsby-source-contentful`:
 
 ```graphql
 image {
-  sqip(numberOfPrimitives: 30, blur: 0) {
-    dataURI
-  },
-  fixed {
-    ...GatsbyContentfulFixed_withWebp_noBase64
+  sqip(numberOfPrimitives: 30, blur: 0),
+  resolutions {
+    ...GatsbyContentfulResolutions_withWebp_noBase64
   }
 }
 ```
@@ -139,9 +135,9 @@ See: https://www.contentful.com/developers/docs/references/images-api/#/referenc
 
 #### Pure JSX
 
-```jsx
+```html
 <div className="image-wrapper">
-  <img src={image.sqip.dataURI} alt="" role="presentation" />
+  <img src={image.dataURI} alt="" role="presentation" />
   <img src={image.src} alt="Useful description" className="image" />
 </div>
 ```
@@ -183,18 +179,18 @@ Just use it as usual with the exception that you overwrite the base64 value with
 const Img = require(`gatsby-image`)
 
 <Img
-  fixed={{
-    ...image.fixed,
-    base64: image.sqip.dataURI
+  resolutions={{
+    ...image.resolutions,
+    base64: image.sqip
   }}
 />
 
 // or
 
 <Img
-  fluid={{
-    ...image.fluid,
-    base64: image.sqip.dataURI
+  sizes={{
+    ...image.sizes,
+    base64: image.sqip
   }}
 />
 ```

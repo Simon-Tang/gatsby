@@ -1,40 +1,36 @@
 import React, { Component } from "react"
 import { graphql, Link } from "gatsby"
 import Layout from "../components/layout"
-import { Helmet } from "react-helmet"
-import { rhythm } from "../utils/typography"
+import Helmet from "react-helmet"
+import typography, { rhythm, scale, options } from "../utils/typography"
 import Img from "gatsby-image"
-import CreatorsHeader from "../views/creators/creators-header"
-import Badge from "../views/creators/badge"
-import FooterLinks from "../components/shared/footer-links"
-import {
-  colors,
-  space,
-  transition,
-  radii,
-  mediaQueries,
-  fontSizes,
-  lineHeights,
-} from "../utils/presets"
+import CommunityHeader from "../views/community/community-header"
+import Badge from "../views/community/badge"
+import presets, { colors } from "../utils/presets"
 import GithubIcon from "react-icons/lib/go/mark-github"
 
 const removeProtocol = input => input.replace(/^https?:\/\//, ``)
 
-const breakpoint2Columns = mediaQueries.md
+const breakpoint2Columns = presets.Tablet
 
 const MetaTitle = ({ children }) => (
   <p
     css={{
       margin: `0`,
-      color: colors.text.secondary,
-      marginBottom: space[1],
-      flexShrink: 0,
-      [mediaQueries.xs]: {
+      textTransform: `uppercase`,
+      color: colors.gray.calm,
+      letterSpacing: `0.03em`,
+      ...scale(-1 / 3),
+      marginBottom: rhythm(options.blockMarginBottom / 4),
+      [presets.Mobile]: {
         width: 150,
       },
       [breakpoint2Columns]: {
         fontWeight: `600`,
+        letterSpacing: 0,
+        ...scale(0),
         marginBottom: 0,
+        color: colors.gray.dark,
         textTransform: `none`,
       },
     }}
@@ -46,12 +42,12 @@ const MetaTitle = ({ children }) => (
 const MetaSection = ({ children, background, last, first }) => (
   <div
     css={{
-      background: background ? background : colors.ui.background,
-      marginLeft: `-${space[5]}`,
-      marginRight: `-${space[5]}`,
-      padding: space[5],
-      borderTop: first ? `1px solid ${colors.ui.border.subtle}` : null,
-      borderBottom: last ? null : `1px solid ${colors.ui.border.subtle}`,
+      background: background ? background : colors.ui.whisper,
+      marginLeft: rhythm(-3 / 4),
+      marginRight: rhythm(-3 / 4),
+      padding: rhythm(3 / 4),
+      borderTop: first ? `1px solid ${colors.ui.light}` : null,
+      borderBottom: last ? null : `1px solid ${colors.ui.light}`,
       [breakpoint2Columns]: {
         background: `transparent`,
         paddingLeft: 0,
@@ -59,7 +55,7 @@ const MetaSection = ({ children, background, last, first }) => (
         marginLeft: 0,
         marginRight: 0,
       },
-      [mediaQueries.sm]: {
+      [presets.Phablet]: {
         display: `flex`,
       },
     }}
@@ -85,13 +81,13 @@ class CreatorTemplate extends Component {
     return (
       <Layout location={location}>
         <Helmet>
-          <title>{`${creator.name} - Creator`}</title>
+          <title>{creator.name}</title>
         </Helmet>
-        <CreatorsHeader submissionText="Add Yourself" />
+        <CommunityHeader submissionText="Add Yourself" />
         <main
           role="main"
           css={{
-            padding: space[6],
+            padding: rhythm(3 / 4),
             paddingBottom: `10vh`,
             display: `flex`,
             flexDirection: `column`,
@@ -99,39 +95,40 @@ class CreatorTemplate extends Component {
             justifyContent: `center`,
             width: `100%`,
             [breakpoint2Columns]: {
-              paddingBottom: space[6],
+              paddingBottom: rhythm(3 / 4),
               flexDirection: `row`,
               alignItems: `flex-start`,
             },
+            fontFamily: typography.options.headerFontFamily.join(`,`),
           }}
         >
           <div
             css={{
-              margin: space[6],
-              marginBottom: space[1],
+              margin: rhythm(3 / 4),
+              marginBottom: rhythm(options.blockMarginBottom / 4),
               flexGrow: `1`,
               width: `100%`,
               [breakpoint2Columns]: {
                 width: `auto`,
                 maxWidth: 480,
               },
-              [mediaQueries.lg]: {
+              [presets.Desktop]: {
                 maxWidth: 560,
               },
             }}
           >
             <Img
               alt={`${creator.name}`}
-              css={{ borderRadius: radii[1] }}
+              css={{ borderRadius: presets.radius }}
               fluid={creator.image.childImageSharp.fluid}
             />
           </div>
           <div
             css={{
-              margin: space[6],
+              margin: rhythm(3 / 4),
               flex: `1`,
               width: `100%`,
-              [mediaQueries.lg]: {
+              [presets.Desktop]: {
                 width: `auto`,
                 maxWidth: 640,
               },
@@ -148,14 +145,14 @@ class CreatorTemplate extends Component {
               css={{
                 alignItems: `center`,
                 display: `flex`,
-                marginTop: space[3],
+                marginTop: rhythm(options.blockMarginBottom / 2),
               }}
             >
               {isAgencyOrCompany && (
                 <span
                   css={{
-                    color: colors.text.secondary,
-                    marginRight: space[2],
+                    color: colors.gray.calm,
+                    marginRight: `.5rem`,
                   }}
                 >
                   {creator.type.charAt(0).toUpperCase() + creator.type.slice(1)}
@@ -166,15 +163,15 @@ class CreatorTemplate extends Component {
                 <div
                   css={{
                     alignSelf: `flex-start`,
-                    fontSize: fontSizes[1],
-                    marginRight: space[2],
+                    ...scale(-1 / 3),
+                    marginRight: `.5rem`,
                   }}
                 >
                   <Badge
                     forHire={creator.for_hire}
                     customCSS={{
-                      background: colors.green[50],
-                      color: colors.white,
+                      background: colors.success,
+                      color: `#fff`,
                     }}
                   >
                     {creator.for_hire ? `Open for work` : `Hiring`}
@@ -188,8 +185,10 @@ class CreatorTemplate extends Component {
                     "& svg": { display: `block` },
                     "&&": {
                       border: 0,
-                      lineHeight: lineHeights.solid,
+                      boxShadow: `none`,
+                      lineHeight: 1,
                       "&:hover": {
+                        background: `none`,
                         color: colors.gatsby,
                       },
                     },
@@ -226,47 +225,48 @@ class CreatorTemplate extends Component {
                 {creator.location}
               </p>
             </MetaSection>
-            {creator.portfolio === true && sites.length > 0 && (
-              <MetaSection background="transparent" last>
-                <MetaTitle>Worked On</MetaTitle>
-                <div
-                  css={{
-                    display: `flex`,
-                    alignItems: `flex-start`,
-                    flexWrap: `wrap`,
-                  }}
-                >
-                  {sites.map(site => (
-                    <Link
-                      key={site.node.title}
-                      css={{
-                        "&&": {
-                          marginRight: space[6],
-                          marginBottom: space[6],
-                          borderBottom: `none`,
-                          lineHeight: 0,
-                          transition: `all ${transition.speed.default} ${
-                            transition.curve.default
-                          }`,
-                        },
-                      }}
-                      to={site.node.fields.slug}
-                    >
-                      <Img
-                        alt={`${site.node.title}`}
-                        fixed={
-                          site.node.childScreenshot.screenshotFile
-                            .childImageSharp.fixed
-                        }
-                      />
-                    </Link>
-                  ))}
-                </div>
-              </MetaSection>
-            )}
+            {creator.portfolio === true &&
+              sites.length > 0 && (
+                <MetaSection background="transparent" last>
+                  <MetaTitle>Worked On</MetaTitle>
+                  <div
+                    css={{
+                      display: `flex`,
+                      alignItems: `flex-start`,
+                    }}
+                  >
+                    {sites.map(site => (
+                      <Link
+                        key={site.node.title}
+                        css={{
+                          "&&": {
+                            marginRight: rhythm(3 / 4),
+                            borderBottom: `none`,
+                            boxShadow: `none`,
+                            transition: `all ${
+                              presets.animation.speedDefault
+                            } ${presets.animation.curveDefault}`,
+                            "&:hover": {
+                              background: `none`,
+                            },
+                          },
+                        }}
+                        to={site.node.fields.slug}
+                      >
+                        <Img
+                          alt={`${site.node.title}`}
+                          fixed={
+                            site.node.childScreenshot.screenshotFile
+                              .childImageSharp.fixed
+                          }
+                        />
+                      </Link>
+                    ))}
+                  </div>
+                </MetaSection>
+              )}
           </div>
         </main>
-        <FooterLinks />
       </Layout>
     )
   }
@@ -297,7 +297,7 @@ export const pageQuery = graphql`
         slug
       }
     }
-    allSitesYaml(filter: { fields: { hasScreenshot: { eq: true } } }) {
+    allSitesYaml {
       edges {
         node {
           built_by

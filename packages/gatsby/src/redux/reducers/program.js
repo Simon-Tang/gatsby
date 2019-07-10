@@ -1,7 +1,4 @@
-module.exports = (
-  state = { directory: `/`, state: `BOOTSTRAPPING` },
-  action
-) => {
+module.exports = (state = { directory: `/` }, action) => {
   switch (action.type) {
     case `SET_PROGRAM`:
       return {
@@ -12,12 +9,6 @@ module.exports = (
       return {
         ...state,
         extensions: action.payload,
-      }
-
-    case `SET_PROGRAM_STATUS`:
-      return {
-        ...state,
-        status: `BOOTSTRAP_FINISHED`,
       }
 
     default:

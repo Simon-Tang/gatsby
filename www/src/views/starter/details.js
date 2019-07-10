@@ -1,6 +1,6 @@
 import React from "react"
 import { Link } from "gatsby"
-import { colors, space, radii, mediaQueries, fonts } from "../../utils/presets"
+import presets, { colors } from "../../utils/presets"
 import { options, rhythm } from "../../utils/typography"
 import sharedStyles from "../shared/styles"
 import FaExtLink from "react-icons/lib/fa/external-link"
@@ -14,22 +14,46 @@ const Details = ({
 }) => (
   <div
     css={{
-      padding: space[6],
-      [mediaQueries.lg]: {
-        padding: space[8],
+      padding: sharedStyles.gutter,
+      [presets.Desktop]: {
+        padding: sharedStyles.gutterDesktop,
         display: `grid`,
         gridTemplateColumns: `auto 1fr`,
-        gridRowGap: space[5],
+        gridRowGap: `20px`,
       },
     }}
   >
-    <div css={styles.headline}>Tags</div>
+    <div
+      css={{
+        color: colors.gray.calm,
+        fontFamily: options.headerFontFamily.join(`,`),
+        paddingRight: 20,
+      }}
+    >
+      Tags
+    </div>
     <div>{startersYaml.tags.join(`, `)}</div>
 
-    <div css={styles.headline}>Description</div>
+    <div
+      css={{
+        color: colors.gray.calm,
+        fontFamily: options.headerFontFamily.join(`,`),
+        paddingRight: 20,
+      }}
+    >
+      Description
+    </div>
     <div>{startersYaml.description}</div>
 
-    <div css={styles.headline}>Features</div>
+    <div
+      css={{
+        color: colors.gray.calm,
+        fontFamily: options.headerFontFamily.join(`,`),
+        paddingRight: 20,
+      }}
+    >
+      Features
+    </div>
     <div>
       {startersYaml.features ? (
         <ul css={{ marginTop: 0 }}>
@@ -42,33 +66,49 @@ const Details = ({
       )}
     </div>
 
-    <div css={styles.headline}>Dependencies</div>
+    <div
+      css={{
+        color: colors.gray.calm,
+        fontFamily: options.headerFontFamily.join(`,`),
+        paddingRight: 20,
+      }}
+    >
+      Dependencies
+    </div>
 
     <div>
       <div
         css={{
           display: `grid`,
+          gridAutoRows: `50px`,
           marginBottom: rhythm(options.blockMarginBottom * 5),
-          [mediaQueries.lg]: {
+          [presets.Desktop]: {
             gridTemplateColumns: `repeat(3, 1fr)`,
-            gridGap: space[5],
+            gridColumnGap: 20,
           },
         }}
       >
         {shownDeps &&
-          shownDeps.map(dep =>
-            /^gatsby-/.test(dep) ? (
-              <div key={dep}>
-                <Link to={`/packages/${dep}`}>{dep}</Link>
-              </div>
-            ) : (
-              <div key={dep} css={{ ...sharedStyles.truncate }}>
-                <a href={`https://npm.im/${dep}`}>
-                  {`${dep} `}
-                  <FaExtLink />
-                </a>
-              </div>
-            )
+          shownDeps.map(
+            dep =>
+              /^gatsby-/.test(dep) ? (
+                <div key={dep}>
+                  <Link to={`/packages/${dep}`}>{dep}</Link>
+                </div>
+              ) : (
+                <div
+                  key={dep}
+                  css={{
+                    ...sharedStyles.truncate,
+                    marginBottom: `1rem`,
+                  }}
+                >
+                  <a href={`https://npm.im/${dep}`}>
+                    {`${dep} `}
+                    <FaExtLink />
+                  </a>
+                </div>
+              )
           )}
         {showMore && (
           <button css={{ ...styles.showMoreButton }} onClick={showAllDeps}>
@@ -83,23 +123,22 @@ const Details = ({
 export default Details
 
 const styles = {
-  headline: {
-    color: colors.text.secondary,
-    fontFamily: fonts.header,
-    paddingRight: space[5],
-  },
   showMoreButton: {
-    backgroundColor: colors.gatsby,
     border: 0,
-    borderRadius: radii[1],
+    borderRadius: presets.radius,
     cursor: `pointer`,
-    fontFamily: fonts.header,
+    fontFamily: options.headerFontFamily.join(`,`),
     fontWeight: `bold`,
-    padding: `${space[1]} ${space[4]}`,
+    padding: `${rhythm(1 / 5)} ${rhythm(2 / 3)}`,
     WebkitFontSmoothing: `antialiased`,
     "&&": {
+      backgroundColor: colors.gatsby,
       borderBottom: `none`,
-      color: colors.white,
+      boxShadow: `none`,
+      color: `white`,
+      "&:hover": {
+        backgroundColor: colors.gatsby,
+      },
     },
   },
 }

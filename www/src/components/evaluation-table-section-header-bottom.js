@@ -1,24 +1,17 @@
+import presets, { colors } from "../utils/presets"
 import React from "react"
-
 import logo from "../monogram.svg"
 import jekyll from "../assets/jekyll.svg"
 import wordpress from "../assets/wordpress.png"
 import squarespace from "../assets/squarespace-compressed.png"
-import {
-  colors,
-  space,
-  mediaQueries,
-  lineHeights,
-  fonts,
-} from "../utils/presets"
-import { rhythm } from "../utils/typography"
+import { rhythm, scale, options } from "../utils/typography"
 
 const subHeaderTitleStyles = {
-  height: space[6],
+  height: rhythm(3 / 4),
   marginBottom: 0,
   display: `block`,
   margin: `auto`,
-  [mediaQueries.xs]: {
+  [presets.Mobile]: {
     height: rhythm(5 / 4),
   },
 }
@@ -53,14 +46,34 @@ const renderSubHeader = props => (
         key={i}
         css={{
           display: `table-cell`,
-          background: colors.ui.background,
+          background: `${colors.ui.whisper}`,
+          // borderLeft: i > 0 ? `1px solid ${colors.ui.light}` : `none`,
+          // borderRight: i === 5 ? `1px solid ${colors.ui.light}` : `none`,
           fontWeight: 600,
-          lineHeight: lineHeights.dense,
+          ...scale(-1 / 9),
+          lineHeight: 1.3,
           textAlign: `left`,
           verticalAlign: `middle`,
-          fontFamily: fonts.header,
-          borderColor: colors.ui.border.subtle,
-          padding: space[3],
+          fontFamily: options.headerFontFamily.join(`,`),
+          borderColor: colors.ui.light,
+          "&&": {
+            paddingTop: rhythm(1 / 4),
+            paddingLeft: rhythm(1 / 4),
+            paddingRight: i >= 1 ? rhythm(1 / 2) : 0,
+            paddingBottom: rhythm(1 / 4),
+            "&:last-child": {
+              paddingRight: i >= 1 ? rhythm(1 / 2) : 0,
+            },
+          },
+          [presets.Mobile]: {
+            paddingTop: rhythm(1 / 2),
+            paddingLeft: `${rhythm(1 / 2)} !important`,
+            paddingRight: rhythm(1 / 2),
+            paddingBottom: rhythm(1 / 2),
+            "&:last-child": {
+              paddingRight: rhythm(1 / 2),
+            },
+          },
         }}
       >
         {header || props.category || `Feature`}

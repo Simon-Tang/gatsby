@@ -53,19 +53,3 @@ module.exports = () => ({
   ],
 })
 ```
-
-If you need to override the default options passed into [`css-loader`](https://github.com/webpack-contrib/css-loader)
-
-```javascript
-// in gatsby-config.js
-plugins: [
-  {
-    resolve: `gatsby-plugin-postcss`,
-    options: {
-      cssLoaderOptions: {
-        camelCase: false,
-      },
-    },
-  },
-]
-```

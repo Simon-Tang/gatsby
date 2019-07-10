@@ -1,13 +1,11 @@
 import React from "react"
-import { fontSizes, fonts } from "../utils/presets"
+import { options } from "../utils/typography"
 
 const FuturaParagraph = ({ children }) => (
   <p
     css={{
-      fontFamily: fonts.header,
+      fontFamily: options.headerFontFamily.join(`,`),
       marginBottom: 0,
-      fontSize: fontSizes[3],
-      WebkitFontSmoothing: `antialiased`,
     }}
   >
     {children}

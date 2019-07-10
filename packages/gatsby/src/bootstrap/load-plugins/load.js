@@ -4,11 +4,8 @@ const fs = require(`fs`)
 const path = require(`path`)
 const crypto = require(`crypto`)
 const glob = require(`glob`)
-const { warnOnIncompatiblePeerDependency } = require(`./validate`)
 const { store } = require(`../../redux`)
 const existsSync = require(`fs-exists-cached`).sync
-const createNodeId = require(`../../utils/create-node-id`)
-const createRequireFromPath = require(`../../utils/create-require-from-path`)
 
 function createFileContentHash(root, globPattern) {
   const hash = crypto.createHash(`md5`)
@@ -20,19 +17,6 @@ function createFileContentHash(root, globPattern) {
 
   return hash.digest(`hex`)
 }
-
-/**
- * Make sure key is unique to plugin options. E.g there could
- * be multiple source-filesystem plugins, with different names
- * (docs, blogs).
- * @param {*} name Name of the plugin
- * @param {*} pluginObject
- */
-const createPluginId = (name, pluginObject = null) =>
-  createNodeId(
-    name + (pluginObject ? JSON.stringify(pluginObject.options) : ``),
-    `Plugin`
-  )
 
 /**
  * @typedef {Object} PluginInfo
@@ -47,11 +31,9 @@ const createPluginId = (name, pluginObject = null) =>
  * This can be a name of a local plugin, the name of a plugin located in
  * node_modules, or a Gatsby internal plugin. In the last case the pluginName
  * will be an absolute path.
- * @param {string} rootDir
- * This is the project location, from which are found the plugins
  * @return {PluginInfo}
  */
-function resolvePlugin(pluginName, rootDir) {
+function resolvePlugin(pluginName) {
   // Only find plugins when we're not given an absolute path
   if (!existsSync(pluginName)) {
     // Find the plugin in the local plugins folder
@@ -62,13 +44,11 @@ function resolvePlugin(pluginName, rootDir) {
         const packageJSON = JSON.parse(
           fs.readFileSync(`${resolvedPath}/package.json`, `utf-8`)
         )
-        const name = packageJSON.name || pluginName
-        warnOnIncompatiblePeerDependency(name, packageJSON)
 
         return {
           resolve: resolvedPath,
-          name,
-          id: createPluginId(name),
+          name: packageJSON.name || pluginName,
+          id: `Plugin ${packageJSON.name || pluginName}`,
           version:
             packageJSON.version || createFileContentHash(resolvedPath, `**`),
         }
@@ -84,20 +64,15 @@ function resolvePlugin(pluginName, rootDir) {
    * which should be located in node_modules.
    */
   try {
-    const requireSource =
-      rootDir !== null
-        ? createRequireFromPath(`${rootDir}/:internal:`)
-        : require
-    const resolvedPath = slash(path.dirname(requireSource.resolve(pluginName)))
+    const resolvedPath = slash(path.dirname(require.resolve(pluginName)))
 
     const packageJSON = JSON.parse(
       fs.readFileSync(`${resolvedPath}/package.json`, `utf-8`)
     )
-    warnOnIncompatiblePeerDependency(packageJSON.name, packageJSON)
 
     return {
       resolve: resolvedPath,
-      id: createPluginId(packageJSON.name),
+      id: `Plugin ${packageJSON.name}`,
       name: packageJSON.name,
       version: packageJSON.version,
     }
@@ -108,7 +83,7 @@ function resolvePlugin(pluginName, rootDir) {
   }
 }
 
-module.exports = (config = {}, rootDir = null) => {
+module.exports = (config = {}) => {
   // Instantiate plugins.
   const plugins = []
 
@@ -117,7 +92,7 @@ module.exports = (config = {}, rootDir = null) => {
   // Also test adding to redux store.
   const processPlugin = plugin => {
     if (_.isString(plugin)) {
-      const info = resolvePlugin(plugin, rootDir)
+      const info = resolvePlugin(plugin)
 
       return {
         ...info,
@@ -126,11 +101,9 @@ module.exports = (config = {}, rootDir = null) => {
         },
       }
     } else {
-      plugin.options = plugin.options || {}
-
       // Plugins can have plugins.
       const subplugins = []
-      if (plugin.options.plugins) {
+      if (plugin.options && plugin.options.plugins) {
         plugin.options.plugins.forEach(p => {
           subplugins.push(processPlugin(p))
         })
@@ -141,22 +114,18 @@ module.exports = (config = {}, rootDir = null) => {
       // Add some default values for tests as we don't actually
       // want to try to load anything during tests.
       if (plugin.resolve === `___TEST___`) {
-        const name = `TEST`
-
         return {
-          id: createPluginId(name, plugin),
-          name,
+          name: `TEST`,
           pluginOptions: {
             plugins: [],
           },
         }
       }
 
-      const info = resolvePlugin(plugin.resolve, rootDir)
+      const info = resolvePlugin(plugin.resolve)
 
       return {
         ...info,
-        id: createPluginId(info.name, plugin),
         pluginOptions: _.merge({ plugins: [] }, plugin.options),
       }
     }
@@ -168,7 +137,7 @@ module.exports = (config = {}, rootDir = null) => {
     `../../internal-plugins/load-babel-config`,
     `../../internal-plugins/internal-data-bridge`,
     `../../internal-plugins/prod-404`,
-    `../../internal-plugins/webpack-theme-component-shadowing`,
+    `../../internal-plugins/query-runner`,
   ]
   internalPlugins.forEach(relPath => {
     const absPath = path.join(__dirname, relPath)
@@ -185,7 +154,7 @@ module.exports = (config = {}, rootDir = null) => {
   // Add the site's default "plugin" i.e. gatsby-x files in root of site.
   plugins.push({
     resolve: slash(process.cwd()),
-    id: createPluginId(`default-site-plugin`),
+    id: `Plugin default-site-plugin`,
     name: `default-site-plugin`,
     version: createFileContentHash(process.cwd(), `gatsby-*`),
     pluginOptions: {
@@ -196,7 +165,7 @@ module.exports = (config = {}, rootDir = null) => {
   const program = store.getState().program
   plugins.push(
     processPlugin({
-      resolve: require.resolve(`gatsby-plugin-page-creator`),
+      resolve: `gatsby-plugin-page-creator`,
       options: {
         path: slash(path.join(program.directory, `src/pages`)),
         pathCheck: false,

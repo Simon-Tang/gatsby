@@ -1,4 +1,4 @@
-import React, { Component } from "react"
+import React from "react"
 import PropTypes from "prop-types"
 import { Link } from "gatsby"
 
@@ -10,7 +10,7 @@ const containerStyle = {
   padding: rhythm(3 / 4),
 }
 
-class DefaultLayout extends Component {
+class DefaultLayout extends React.Component {
   render() {
     return (
       <div>
@@ -58,7 +58,7 @@ class DefaultLayout extends Component {
 }
 
 DefaultLayout.propTypes = {
-  children: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
 }
 
 export default DefaultLayout

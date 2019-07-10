@@ -1,31 +1,18 @@
+import crypto from "crypto"
 import parseMetadata from "./parse"
+
+const digest = str =>
+  crypto
+    .createHash(`md5`)
+    .update(str)
+    .digest(`hex`)
 
 const propsId = (parentId, name) => `${parentId}--ComponentProp-${name}`
 const descId = parentId => `${parentId}--ComponentDescription`
 
-function canParse(node) {
-  return (
-    node &&
-    (node.internal.mediaType === `application/javascript` ||
-      // TypeScript doesn't really have a mime type and .ts files are a media file :/
-      node.internal.mediaType === `application/typescript` ||
-      node.internal.mediaType === `text/jsx` ||
-      node.internal.mediaType === `text/tsx` ||
-      node.extension === `tsx` ||
-      node.extension === `ts`)
-  )
-}
-
-function createDescriptionNode(
-  node,
-  entry,
-  actions,
-  createNodeId,
-  createContentDigest
-) {
+function createDescriptionNode(node, entry, actions, createNodeId) {
+  if (!entry.description) return node
   const { createNode } = actions
-
-  delete node.description
 
   const descriptionNode = {
     id: createNodeId(descId(node.id)),
@@ -36,7 +23,7 @@ function createDescriptionNode(
       type: `ComponentDescription`,
       mediaType: `text/markdown`,
       content: entry.description,
-      contentDigest: createContentDigest(entry.description),
+      contentDigest: digest(entry.description),
     },
   }
 
@@ -47,13 +34,7 @@ function createDescriptionNode(
   return node
 }
 
-function createPropNodes(
-  node,
-  component,
-  actions,
-  createNodeId,
-  createContentDigest
-) {
+function createPropNodes(node, component, actions, createNodeId) {
   const { createNode } = actions
   let children = new Array(component.props.length)
 
@@ -69,17 +50,11 @@ function createPropNodes(
       parentType: prop.type,
       internal: {
         type: `ComponentProp`,
-        contentDigest: createContentDigest(content),
+        contentDigest: digest(content),
       },
     }
     children[i] = propNode.id
-    propNode = createDescriptionNode(
-      propNode,
-      prop,
-      actions,
-      createNodeId,
-      createContentDigest
-    )
+    propNode = createDescriptionNode(propNode, prop, actions, createNodeId)
     createNode(propNode)
   })
 
@@ -89,19 +64,16 @@ function createPropNodes(
 }
 
 export default async function onCreateNode(
-  {
-    node,
-    loadNodeContent,
-    actions,
-    createNodeId,
-    reporter,
-    createContentDigest,
-  },
+  { node, loadNodeContent, actions, createNodeId, reporter },
   pluginOptions
 ) {
   const { createNode, createParentChildLink } = actions
 
-  if (!canParse(node)) return
+  if (
+    node.internal.mediaType !== `application/javascript` &&
+    node.internal.mediaType !== `text/jsx`
+  )
+    return
 
   const content = await loadNodeContent(node)
 
@@ -120,7 +92,7 @@ export default async function onCreateNode(
 
   components.forEach(component => {
     const strContent = JSON.stringify(component)
-    const contentDigest = createContentDigest(strContent)
+    const contentDigest = digest(strContent)
     const nodeId = `${node.id}--${component.displayName}--ComponentMetadata`
 
     let metadataNode = {
@@ -140,15 +112,13 @@ export default async function onCreateNode(
       metadataNode,
       component,
       actions,
-      createNodeId,
-      createContentDigest
+      createNodeId
     )
     metadataNode = createDescriptionNode(
       metadataNode,
       component,
       actions,
-      createNodeId,
-      createContentDigest
+      createNodeId
     )
     createNode(metadataNode)
   })

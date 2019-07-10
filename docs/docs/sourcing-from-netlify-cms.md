@@ -22,7 +22,7 @@ _Note: this guide uses the Gatsby Hello World starter to provide a very basic un
 Netlify CMS can work with your Gatsby site. If you get stuck, compare your code to the [example
 project](https://github.com/erquhart/gatsby-netlify-cms-example). If you'd like to start with a full
 blown template, check out
-[gatsby-starter-netlify-cms][1]._
+[gatsby-starter-netlify-cms](https://github.com/AustinGreen/gatsby-starter-netlify-cms)._
 
 ### Setup
 
@@ -37,13 +37,13 @@ gatsby new netlify-cms-tutorial https://github.com/gatsbyjs/gatsby-starter-hello
 Now move into the newly created directory and install the Gatsby plugin for Netlify CMS:
 
 ```shell
-cd netlify-cms-tutorial && npm install --save netlify-cms-app gatsby-plugin-netlify-cms
+cd netlify-cms-tutorial && npm install --save netlify-cms gatsby-plugin-netlify-cms
 ```
 
 Gatsby plugins are registered in a file called `gatsby-config.js` in the site root. Create that file
 if it's not already there, and add the following to register the Netlify CMS plugin:
 
-```javascript:title=gatsby-config.js
+```javascript
 module.exports = {
   plugins: [`gatsby-plugin-netlify-cms`],
 }
@@ -55,10 +55,10 @@ want to put the configuration file in that same directory.
 
 Still in the root directory, add a "static" folder. Gatsby will copy everything in the static folder
 into the output, so we'll want to place the Netlify CMS configuration file as
-`static/admin/config.yml`. Let's create a test configuration now - add this to your new
+"static/admin/config.yml". Let's create a test configuration now - add this to your new
 `config.yml`:
 
-```yaml:title=static/admin/config.yml
+```yaml
 backend:
   name: test-repo
 
@@ -77,11 +77,11 @@ collections:
       - { name: body, label: Body, widget: markdown }
 ```
 
-Then in your terminal run `gatsby develop` to start the
-Gatsby development server. Once the server is running, it will print the address to open for
-viewing. It's typically `localhost:8000`. Open that in a browser and you should see the text
-"Hello World" in the top left corner. Now navigate to `/admin/` - so if your site is at
-`localhost:8000`, go to `localhost:8000/admin/`. **The trailing slash is required!**
+Then in your terminal run `gatsby develop` to start the Gatsby development server. Once the server
+is running, it will print the address to open for viewing. It's typically `localhost:8000`. Open that
+in a browser and you should see the text "Hello World" in the top left corner. Now navigate to
+`/admin/` - so if your site is at `localhost:8000`, go to `localhost:8000/admin/`. **The trailing
+slash is required!**
 
 You should now be viewing your Netlify CMS instance. You defined a "blog" collection in the
 configuration above, so you can create new blogs, but Netlify CMS will only store them in memory -
@@ -136,30 +136,13 @@ example below. Note that the `repo` value must be your GitHub username followed 
 forward slash, and then your repository name. If your username is "test-user" and your repo name is
 "test-repo", you would put "test-user/test-repo".
 
-```yaml:title=static/admin/config.yml
+```yaml
 backend:
   name: github
   repo: your-username/your-repo-name
 ```
 
 Now you can save the config.yml file, commit the change, and push it to your GitHub repo.
-
-#### Authenticating with GitLab
-
-See the [GitLab Backend](https://www.netlifycms.org/docs/authentication-backends/#gitlab-backend)
-section for details on how to configure authentication with GitLab.
-
-If you use the [Client-Side Implicit Grant](https://www.netlifycms.org/docs/authentication-backends/#client-side-implicit-grant) option, disable the Netlify Identity service in your
-`gatsby-config.js`:
-
-```javascript:title=gatsby-config.js
-{
-  resolve: `gatsby-plugin-netlify-cms`,
-  options: {
-    enableIdentityWidget: false,
-  }
-}
-```
 
 #### Making Changes
 
@@ -202,6 +185,5 @@ mentioned in the beginning of this guide, if you got stuck, you can compare your
 created by following this guide. You can also reach out to the Netlify CMS community on
 [Gitter](https://gitter.im/netlify/netlifycms). Lastly, if you'd like to move into a more complete
 boilerplate to get going with Gatsby and Netlify CMS, you can clone and deploy the [official Gatsby
-Netlify CMS starter][1] to Netlify with [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/netlify-templates/gatsby-starter-netlify-cms&stack=cms) .
-
-[1]: https://github.com/netlify-templates/gatsby-starter-netlify-cms
+Netlify CMS starter](https://github.com/AustinGreen/gatsby-starter-netlify-cms) to Netlify with [one
+click](https://app.netlify.com/start/deploy?repository=https://github.com/AustinGreen/gatsby-starter-netlify-cms&stack=cms).

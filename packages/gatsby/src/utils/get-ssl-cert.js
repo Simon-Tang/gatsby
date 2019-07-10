@@ -3,14 +3,6 @@ const report = require(`gatsby-cli/lib/reporter`)
 const fs = require(`fs`)
 const path = require(`path`)
 
-const absoluteOrDirectory = (directory, filePath) => {
-  // Support absolute paths
-  if (path.isAbsolute(filePath)) {
-    return filePath
-  }
-  return path.join(directory, filePath)
-}
-
 module.exports = async ({ name, certFile, keyFile, directory }) => {
   // check that cert file and key file are both true or both false, if they are both
   // false, it defaults to the automatic ssl
@@ -21,8 +13,8 @@ module.exports = async ({ name, certFile, keyFile, directory }) => {
   }
 
   if (certFile && keyFile) {
-    const keyPath = absoluteOrDirectory(directory, keyFile)
-    const certPath = absoluteOrDirectory(directory, certFile)
+    const keyPath = path.join(directory, keyFile)
+    const certPath = path.join(directory, certFile)
 
     return await {
       keyPath,

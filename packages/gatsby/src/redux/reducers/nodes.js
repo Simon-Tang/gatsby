@@ -13,9 +13,7 @@ module.exports = (state = new Map(), action) => {
       return state
 
     case `DELETE_NODE`: {
-      if (action.payload) {
-        state.delete(action.payload.id)
-      }
+      state.delete(action.payload.id)
       return state
     }
 

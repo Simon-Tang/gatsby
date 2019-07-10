@@ -16,10 +16,7 @@ const Button = ({
   tag,
   large,
   small,
-  tiny,
   secondary,
-  ondark,
-  tracking,
   ...rest
 }) => {
   const Tag = components[tag || `link`]
@@ -27,57 +24,20 @@ const Button = ({
   const props = {
     to: !tag ? to : undefined,
     href: tag === `href` ? to : undefined,
+    css: {
+      "&&": {
+        ...buttonStyles.default,
+        ...overrideCSS,
+        ...(secondary && { ...buttonStyles.secondary }),
+        ...(large && { ...buttonStyles.large }),
+        ...(small && { ...buttonStyles.small }),
+      },
+    },
     ...rest,
   }
 
-  const css = {
-    "&&": {
-      ...buttonStyles.default,
-      ...overrideCSS,
-      ...(secondary && buttonStyles.secondary),
-      ...(large && buttonStyles.large),
-      ...(small && buttonStyles.small),
-      ...(tiny && buttonStyles.tiny),
-      ...(ondark && buttonStyles.ondark),
-    },
-  }
-
-  const trackingOnClick = e => {
-    if (typeof props.onClick === `function`) {
-      props.onClick(e)
-    }
-
-    let redirect = true
-
-    // Slightly modified logic from the gatsby-plugin-google-analytics
-    // But this one should work with `Link` component as well
-    if (
-      e.button !== 0 ||
-      e.altKey ||
-      e.ctrlKey ||
-      e.metaKey ||
-      e.shiftKey ||
-      e.defaultPrevented
-    ) {
-      redirect = false
-    }
-
-    if (props.target && props.target.toLowerCase() !== `_self`) {
-      redirect = false
-    }
-
-    if (tracking && window.ga) {
-      window.ga(`send`, `event`, {
-        eventCategory: `Outbound Link`,
-        eventAction: `click`,
-        eventLabel: `${tracking} - ${props.to || props.href}`,
-        transport: redirect ? `beacon` : ``,
-      })
-    }
-  }
-
   return (
-    <Tag {...props} onClick={trackingOnClick} css={css}>
+    <Tag {...props}>
       {children}
       {icon && <>{icon}</>}
     </Tag>

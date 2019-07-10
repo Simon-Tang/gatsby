@@ -22,12 +22,7 @@ describe(`Process Lever data`, () => {
   })
   it(`creates nodes for each entry`, () => {
     const createNode = jest.fn()
-    const createContentDigest = jest.fn().mockReturnValue(`contentDigest`)
-    normalize.createNodesFromEntities({
-      entities,
-      createNode,
-      createContentDigest,
-    })
+    normalize.createNodesFromEntities({ entities, createNode })
     expect(createNode.mock.calls).toMatchSnapshot()
   })
 })

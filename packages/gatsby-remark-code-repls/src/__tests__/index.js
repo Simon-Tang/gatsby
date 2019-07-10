@@ -24,7 +24,6 @@ const REMARK_TESTS = {
 }
 
 const remark = new Remark()
-const JSONstringifySpy = jest.spyOn(JSON, `stringify`)
 
 describe(`gatsby-remark-code-repls`, () => {
   beforeEach(() => {
@@ -33,7 +32,6 @@ describe(`gatsby-remark-code-repls`, () => {
 
     fs.readFileSync.mockReset()
     fs.readFileSync.mockReturnValue(`const foo = "bar";`)
-    JSONstringifySpy.mockClear()
   })
 
   Object.keys(REMARK_TESTS).forEach(name => {
@@ -141,23 +139,6 @@ describe(`gatsby-remark-code-repls`, () => {
         }
       })
 
-      it(`supports includeMatchingCSS`, () => {
-        const markdownAST = remark.parse(
-          `[](${protocol}path/to/nested/file.js)`
-        )
-        const runPlugin = () =>
-          plugin(
-            { markdownAST },
-            {
-              directory: `examples`,
-              codepen: {
-                includeMatchingCSS: true,
-              },
-            }
-          )
-        expect(runPlugin).not.toThrow()
-      })
-
       if (protocol === PROTOCOL_CODE_SANDBOX) {
         it(`supports custom html config option for index html`, () => {
           const markdownAST = remark.parse(
@@ -168,9 +149,7 @@ describe(`gatsby-remark-code-repls`, () => {
             { markdownAST },
             {
               directory: `examples`,
-              codesandbox: {
-                html: `<span id="foo"></span>`,
-              },
+              html: `<span id="foo"></span>`,
             }
           )
 
@@ -185,34 +164,11 @@ describe(`gatsby-remark-code-repls`, () => {
           const transformed = plugin(
             { markdownAST },
             {
-              codesandbox: {
-                dependencies: [
-                  `react`,
-                  `react-dom@next`,
-                  `prop-types@15.5`,
-                  `@babel/core@7.4.0`,
-                ],
-              },
+              dependencies: [`react`, `react-dom@next`, `prop-types@15.5`],
               directory: `examples`,
             }
           )
 
-          expect(JSONstringifySpy).toHaveBeenCalledWith(
-            expect.objectContaining({
-              files: expect.objectContaining({
-                "package.json": expect.objectContaining({
-                  content: expect.objectContaining({
-                    dependencies: expect.objectContaining({
-                      react: `latest`,
-                      "react-dom": `next`,
-                      "prop-types": `15.5`,
-                      "@babel/core": `7.4.0`,
-                    }),
-                  }),
-                }),
-              }),
-            })
-          )
           expect(transformed).toMatchSnapshot()
         })
 

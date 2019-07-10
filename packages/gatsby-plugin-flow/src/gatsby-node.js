@@ -1,5 +1,7 @@
-export const onCreateBabelConfig = ({ actions }, pluginOptions) => {
+function onCreateBabelConfig({ actions }, pluginOptions) {
   actions.setBabelPreset({
-    name: require.resolve(`@babel/preset-flow`),
+    name: `@babel/preset-flow`,
   })
 }
+
+exports.onCreateBabelConfig = onCreateBabelConfig

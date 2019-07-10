@@ -3,7 +3,8 @@ import { navigate } from "gatsby"
 import ArrowForwardIcon from "react-icons/lib/md/arrow-forward"
 import ArrowBackIcon from "react-icons/lib/md/arrow-back"
 import PaginationLink from "./PaginationLink"
-import { colors, space, mediaQueries, fontSizes } from "../../utils/presets"
+import presets, { colors } from "../../utils/presets"
+import { options, rhythm } from "../../utils/typography"
 
 class Pagination extends React.Component {
   changePage = e => {
@@ -21,7 +22,10 @@ class Pagination extends React.Component {
 
     const prevNextLinkStyles = {
       "&&": {
+        boxShadow: `none`,
         borderBottom: 0,
+        fontFamily: options.headerFontFamily.join(`,`),
+        fontWeight: `bold`,
         color: colors.gatsby,
       },
     }
@@ -29,18 +33,11 @@ class Pagination extends React.Component {
     return (
       <div
         css={{
-          background: colors.ui.background,
           display: `flex`,
           justifyContent: `space-between`,
-          margin: `0 -${space[6]}`,
-          padding: `${space[6]}`,
+          margin: `${rhythm(1)} 0`,
           flexDirection: `column`,
-          fontSize: fontSizes[1],
-          [mediaQueries.md]: {
-            background: `transparent`,
-            borderTop: 0,
-            marginBottom: 0,
-            paddingTop: 0,
+          [presets.Tablet]: {
             flexDirection: `row`,
           },
         }}
@@ -52,8 +49,8 @@ class Pagination extends React.Component {
             padding: `0`,
             justifyContent: `space-between`,
             alignItems: `center`,
-            marginBottom: space[3],
-            [mediaQueries.md]: {
+            marginBottom: rhythm(1 / 2),
+            [presets.Tablet]: {
               width: `15rem`,
               marginBottom: 0,
             },
@@ -73,7 +70,7 @@ class Pagination extends React.Component {
             display: `flex`,
             alignItems: `center`,
             justifyContent: `flex-end`,
-            fontSize: fontSizes[1],
+            fontFamily: options.headerFontFamily.join(`,`),
           }}
         >
           <span>Showing page &nbsp;</span>
@@ -84,7 +81,7 @@ class Pagination extends React.Component {
               appearance: `none`,
               border: `none`,
               padding: `0.5ch 2ch 0.5ch 0.5ch`,
-              color: colors.gatsby,
+              color: `rebeccapurple`,
               fontWeight: `bold`,
             }}
           >
@@ -103,8 +100,8 @@ class Pagination extends React.Component {
             viewBox="0 0 10 5"
             css={{
               position: `relative`,
-              right: space[4],
-              fill: colors.gatsby,
+              right: `1.5ch`,
+              fill: `rebeccapurple`,
               pointerEvents: `none`,
             }}
           >

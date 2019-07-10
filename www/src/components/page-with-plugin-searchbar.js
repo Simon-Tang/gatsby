@@ -1,62 +1,66 @@
-import React, { Fragment } from "react"
+import React, { Component, Fragment } from "react"
 import PluginSearchBar from "./plugin-searchbar-body"
 import { rhythm } from "../utils/typography"
-import { colors, mediaQueries, sizes } from "../utils/presets"
+import presets, { colors } from "../utils/presets"
+import { scrollbarStyles } from "../utils/styles"
 
-const PageWithPluginSearchBar = ({ isPluginsIndex, location, children }) => (
-  <Fragment>
-    <nav
-      css={{
-        ...styles.sidebar,
-        // mobile: hide PluginSearchBar when on gatsbyjs.org/packages/foo, aka package README page
-        display: !isPluginsIndex ? `none` : false,
-      }}
-      aria-label="Plugin navigation"
-    >
-      <PluginSearchBar location={location} />
-    </nav>
-    <main
-      id={`reach-skip-nav`}
-      css={{
-        ...styles.content,
-        // mobile: hide README on gatsbyjs.org/plugins index page
-        display: isPluginsIndex ? `none` : false,
-      }}
-    >
-      {children}
-    </main>
-  </Fragment>
-)
+class PageWithPluginSearchBar extends Component {
+  render() {
+    return (
+      <Fragment>
+        <section
+          css={{
+            ...styles.sidebar,
+            // mobile: hide PluginSearchBar when on gatsbyjs.org/packages/foo, aka package README page
+            display: `${!this.props.isPluginsIndex && `none`}`,
+          }}
+        >
+          <PluginSearchBar location={this.props.location} />
+        </section>
+        <main
+          css={{
+            ...styles.content,
+            // mobile: hide README on gatsbyjs.org/plugins index page
+            display: `${this.props.isPluginsIndex && `none`}`,
+          }}
+        >
+          {this.props.children}
+        </main>
+      </Fragment>
+    )
+  }
+}
+
+export default PageWithPluginSearchBar
 
 const widthDefault = rhythm(14)
 const widthLarge = rhythm(16)
 
 const styles = {
   sidebar: {
-    height: `calc(100vh - ${sizes.headerHeight})`,
-    width: `100%`,
+    height: `calc(100vh - ${presets.headerHeight})`,
+    width: `100vw`,
     zIndex: 1,
-    top: `calc(${sizes.headerHeight} + ${sizes.bannerHeight} - 1px)`,
-    [mediaQueries.md]: {
+    top: `calc(${presets.headerHeight} + ${presets.bannerHeight} - 1px)`,
+    ...scrollbarStyles,
+    [presets.Tablet]: {
       display: `block`,
       width: widthDefault,
       position: `fixed`,
-      background: colors.white,
-      borderRight: `1px solid ${colors.ui.border.subtle}`,
+      background: colors.ui.whisper,
+      borderRight: `1px solid ${colors.ui.light}`,
     },
-    [mediaQueries.lg]: {
+    [presets.Desktop]: {
       width: widthLarge,
     },
   },
   content: {
-    [mediaQueries.md]: {
+    [presets.Tablet]: {
       display: `block`,
       paddingLeft: widthDefault,
     },
-    [mediaQueries.lg]: {
+    [presets.Desktop]: {
       paddingLeft: widthLarge,
     },
   },
 }
-
-export default PageWithPluginSearchBar

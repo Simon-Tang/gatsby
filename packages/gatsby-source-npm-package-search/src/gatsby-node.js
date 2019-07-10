@@ -1,7 +1,14 @@
 const algoliasearch = require(`algoliasearch`)
+const crypto = require(`crypto`)
 
 const client = algoliasearch(`OFCNCOG2CU`, `6fbcaeafced8913bf0e4d39f0b541957`)
 var index = client.initIndex(`npm-search`)
+
+const createContentDigest = obj =>
+  crypto
+    .createHash(`md5`)
+    .update(JSON.stringify(obj))
+    .digest(`hex`)
 
 function browse({ index, ...params }) {
   let hits = []
@@ -15,7 +22,7 @@ function browse({ index, ...params }) {
 }
 
 exports.sourceNodes = async (
-  { boundActionCreators, createNodeId, createContentDigest },
+  { boundActionCreators, createNodeId },
   { keywords }
 ) => {
   const { createNode } = boundActionCreators

@@ -1,5 +1,7 @@
 import React from "react"
 import { Link } from "gatsby"
+import { style } from "glamor"
+
 import SvgDefs from "../assets/svg-defs"
 import {
   BlogIcon,
@@ -8,50 +10,31 @@ import {
   PluginsIcon,
   ShowcaseIcon,
 } from "../assets/mobile-nav-icons"
-import {
-  colors,
-  transition,
-  radii,
-  space,
-  mediaQueries,
-  sizes,
-  fontSizes,
-  lineHeights,
-  fonts,
-  zIndices,
-} from "../utils/presets"
+import presets, { colors } from "../utils/presets"
 import { svgStyles } from "../utils/styles"
+import typography, { rhythm, scale, options } from "../utils/typography"
 
-const getProps = ({ isPartiallyCurrent }) => {
-  return {
-    ...(isPartiallyCurrent
-      ? {
-          "data-active": true,
-        }
-      : {}),
-  }
-}
-
-const MobileNavItem = ({ linkTo, label, icon }) => (
-  <Link
-    css={{
-      ...styles.link.default,
-      ...styles.svg.default,
-      "&[data-active]": {
+const getNavItemStyles = ({ isPartiallyCurrent }) =>
+  isPartiallyCurrent
+    ? {
+        ...styles.link.default,
         ...styles.link.active,
         ...styles.svg.active,
-      },
-    }}
-    getProps={getProps}
-    to={linkTo}
-  >
+      }
+    : {
+        ...styles.link.default,
+        ...styles.svg.default,
+      }
+
+const MobileNavItem = ({ linkTo, label, icon }) => (
+  <Link to={linkTo} getProps={getNavItemStyles}>
     <span dangerouslySetInnerHTML={{ __html: icon }} />
     <div>{label}</div>
   </Link>
 )
 
 const MobileNavigation = () => (
-  <>
+  <React.Fragment>
     <span
       css={{
         position: `absolute`,
@@ -74,67 +57,86 @@ const MobileNavigation = () => (
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: zIndices.navigation,
-        borderTop: `1px solid ${colors.ui.border.subtle}`,
-        background: colors.white,
-        height: sizes.headerHeight,
-        fontFamily: fonts.header,
+        zIndex: 1,
+        borderTop: `1px solid ${colors.ui.border}`,
+        background: colors.ui.whisper,
+        height: presets.headerHeight,
+        fontFamily: typography.options.headerFontFamily.join(`,`),
         paddingBottom: `env(safe-area-inset-bottom)`,
-        [mediaQueries.md]: {
+        [presets.Tablet]: {
           display: `none`,
         },
       }}
     >
       <MobileNavItem linkTo="/docs/" label="Docs" icon={DocsIcon} />
-      <MobileNavItem
-        linkTo="/tutorial/"
-        label="Tutorials"
-        icon={TutorialIcon}
-      />
+      <MobileNavItem linkTo="/tutorial/" label="Tutorial" icon={TutorialIcon} />
       <MobileNavItem linkTo="/plugins/" label="Plugins" icon={PluginsIcon} />
       <MobileNavItem linkTo="/blog/" label="Blog" icon={BlogIcon} />
       <MobileNavItem linkTo="/showcase/" label="Showcase" icon={ShowcaseIcon} />
     </div>
-  </>
+  </React.Fragment>
 )
 
 export default MobileNavigation
 
+const svgActive = style({
+  ...svgStyles.active,
+})
+
 const styles = {
   svg: {
-    default: {
-      ...svgStyles.stroke,
-      ...svgStyles.default,
-      "&:hover": { ...svgStyles.active },
-    },
-    active: svgStyles.active,
+    default: style({
+      "& .svg-stroke": {
+        strokeMiterlimit: 10,
+        strokeWidth: 1.4173,
+      },
+      "& .svg-stroke-accent": { stroke: colors.lavender },
+      "& .svg-stroke-lilac": { stroke: colors.lavender },
+      "& .svg-fill-lilac": { fill: colors.lavender },
+      "& .svg-fill-gatsby": { fill: colors.lavender },
+      "& .svg-fill-brightest": { fill: `#fff` },
+      "& .svg-fill-accent": { fill: colors.lavender },
+      "& .svg-stroke-gatsby": { stroke: colors.lavender },
+      "& .svg-fill-gradient-accent-white-top": { fill: `transparent` },
+      "& .svg-fill-gradient-accent-white-45deg": { fill: `transparent` },
+      "& .svg-fill-gradient-accent-white-bottom": { fill: `#fff` },
+      "& .svg-fill-gradient-purple": { fill: colors.lavender },
+      "& .svg-stroke-gradient-purple": { stroke: colors.lavender },
+      "& .svg-fill-wisteria": { fill: `transparent` },
+      "&:hover": { ...svgActive },
+    }),
+    active: svgActive,
   },
   link: {
-    default: {
-      color: colors.lilac,
-      borderRadius: radii[1],
-      fontSize: fontSizes[0],
+    default: style({
+      color: colors.lavender,
+      borderRadius: presets.radius,
+      fontSize: scale(-1 / 2).fontSize,
       flexShrink: 0,
-      lineHeight: lineHeights.solid,
+      lineHeight: 1,
       width: 64,
-      padding: space[1],
+      padding: `${rhythm(options.blockMarginBottom / 4)} ${rhythm(
+        options.blockMarginBottom / 4
+      )} 0`,
       textDecoration: `none`,
       textAlign: `center`,
-      WebkitFontSmoothing: `antialiased`,
       "& svg": {
         display: `block`,
         height: 32,
         margin: `0 auto`,
         "& path, & line, & polygon": {
-          transition: `all ${transition.speed.default} ${
-            transition.curve.default
+          transition: `all ${presets.animation.speedDefault} ${
+            presets.animation.curveDefault
           }`,
         },
       },
-    },
-    active: {
-      color: colors.gatsby,
-      fontWeight: `bold`,
-    },
+    }),
+    active: style({
+      "&&": {
+        color: colors.gatsby,
+        fontWeight: `bold`,
+        // WebkitFontSmoothing: `antialiased`,
+      },
+    }),
   },
 }

@@ -6,28 +6,15 @@ exports.onRenderBody = (
   pluginOptions
 ) => {
   if (pluginOptions && pluginOptions.siteUrl) {
-    const siteUrl = pluginOptions.siteUrl.replace(/\/$/, ``)
-    const parsed = url.parse(`${siteUrl}${pathname}`)
-    const stripQueryString =
-      typeof pluginOptions.stripQueryString !== `undefined`
-        ? pluginOptions.stripQueryString
-        : false
-
-    let pageUrl = ``
-
-    if (stripQueryString) {
-      pageUrl = `${parsed.protocol}//${parsed.host}${parsed.pathname}`
-    } else {
-      pageUrl = parsed.href
-    }
-
+    const parsedUrl = url.parse(pluginOptions.siteUrl)
+    const myUrl = `${pluginOptions.siteUrl}${pathname}`
     setHeadComponents([
       <link
         rel="canonical"
-        key={pageUrl}
-        href={pageUrl}
-        data-baseprotocol={parsed.protocol}
-        data-basehost={parsed.host}
+        key={myUrl}
+        href={myUrl}
+        data-baseprotocol={parsedUrl.protocol}
+        data-basehost={parsedUrl.host}
       />,
     ])
   }
