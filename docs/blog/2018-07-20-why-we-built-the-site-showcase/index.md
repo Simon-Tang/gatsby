@@ -17,7 +17,7 @@ The Site Showcase was developed by Cassie Beckley ([@ThatOtherPerson](https://gi
 
 ## Submitting your site
 
-If you've built a site with Gatsby and would like it to appear in the Site Showcase, please [submit your site](https://github.com/gatsbyjs/gatsby/blob/master/docs/docs/site-showcase-submissions.md).
+If you've built a site with Gatsby and would like it to appear in the Site Showcase, please [submit your site](https://www.gatsbyjs.org/contributing/site-showcase-submissions/).
 
 ## Why build a site showcase?
 
@@ -35,7 +35,7 @@ The Site Showcase can help you pitch Gatsby to clients and coworkers as the best
 
 ## UX research process
 
-Many of you contributed to the discussion and development of the site showcase. Here are the intial issue and PR if you'd like to go through the discussion that led to this project:
+Many of you contributed to the discussion and development of the site showcase. Here are the initial issue and PR if you'd like to go through the discussion that led to this project:
 
 - [Site Showcase Issue](https://github.com/gatsbyjs/gatsby/issues/4392)
 - [Site Showcase WIP PR](https://github.com/gatsbyjs/gatsby/pull/5524)
@@ -50,7 +50,7 @@ Here’s a summary of what I learned from over 80 interviews with Gatsby users. 
 
 The empathy map reflects the following pain points:
 
-- the Awesome Gatsby list of sites (used to be part of the READme in the open source repo) was growing long and was not searchable or filterable
+- the Awesome Gatsby list of sites (used to be part of the README in the open source repo) was growing long and was not searchable or filterable
 - the Awesome Gatsby list also had no visual indication of what the sites looked like
 - there isn’t enough time or room for everyone's awesome sites to get retweeted by the @Gatsbyjs account
 
